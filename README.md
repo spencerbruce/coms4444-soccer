@@ -25,7 +25,7 @@ Version control with Git will be a large aspect of team-oriented development in 
 Please follow these instructions for installing Git and forking repositories:
 
 1.  Make sure you have Git installed. Instructions on installing Git for your OS can be found at: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git.
-2.  You will need to set up SSH keys if you haven't done so. To set up SSH keys, please refer to: https://docs.github.com/en/enterprise/2.20/user/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent. Note that you only need to complete the subsection titled _Generating a new SSH key_ for your OS.
+2.  You will need to set up SSH keys for each machine using Git, if you haven't done so. To set up SSH keys, please refer to: https://docs.github.com/en/enterprise/2.20/user/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent. Note that you only need to complete the subsection titled _Generating a new SSH key_ for your OS.
 3.  Add your newly-generated SSH keys to the GitHub account, as done here: https://docs.github.com/en/enterprise/2.20/user/github/authenticating-to-github/adding-a-new-ssh-key-to-your-github-account.
 4.  Fork any repository (to fork, click on "Fork" in the top-right of the page), and clone the forked repository in your local machine inside the parent directory that will house the repository (to copy the remote URL for cloning, click on the "Clone" button, make sure that "Clone with SSH" is visible - the remote URL should start with `git@github.com` - and copy the URL to the clipboard). You should now be able to stage, commit, push, and pull changes using Git.
 
