@@ -19,8 +19,8 @@ TAs: Aditya Sridhar, *<TA 2>*
 1.  Run `make compile` to generate the make file.
 2.  Update the make file with participating teams.
 3.  Run one of the following:
-* `make run`: view results from the command line
-* `make gui`: view results from the GUI
+    * `make run`: view results from the command line
+    * `make gui`: view results from the GUI
 
 #### Simulator arguments:
 > **[-p | --players]**: space-separated players/teams
