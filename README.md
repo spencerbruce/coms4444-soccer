@@ -9,9 +9,10 @@ TAs: Aditya Sridhar, *<TA 2>*
 
 ## Project Description
 
-<img src="statics/soccerBall.png"
-     alt="Soccer Ball"
-     style="float: center" />
+<p align="center">
+     <img src="statics/soccerBall.png"
+          alt="Soccer Ball" />
+</p>
 
 The project involves a retroactive soccer league. The league has 10 teams, each competing to rank as highly as possible after playing once against every other team. Following conventional soccer leagues, a win counts for 3 points, a draw is 1 point, and a loss earns 0 points. The first round of the league is randomized, and you have no control over the outcome. The simulator will look at each of the 45 games and assign a random number of goals to each team in each game. The
 number of goals scored comes from the set {0, 1, 2, 3, 4, 5, 6, 7, 8}, where each of the nine games for a team uses exactly one element of this set. The outcome of all games can be computed based on the goals for each team, and the teams can then have their point totals calculated. Teams are then ranked from 1 to 10 based
