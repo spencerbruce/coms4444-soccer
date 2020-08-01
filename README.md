@@ -36,7 +36,11 @@ TAs: Aditya Sridhar, *<TA 2>*
 > **[-g | --gui]**: enable the GUI
 
 
-## Description of Important Classes
+## Class Design
+
+### Class Diagram
+
+### Description of Important Classes/Methods
 
   
 
