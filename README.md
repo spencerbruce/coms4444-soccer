@@ -3,6 +3,7 @@
 ## Course Summary
 
 Course: COMS 4444 Programming and Problem Solving (Fall 2020)  
+Website: http://www.cs.columbia.edu/~kar/4444f20
 University: Columbia University  
 Instructor: Prof. Kenneth Ross  
 TAs: Aditya Sridhar, *<TA 2>*
@@ -16,7 +17,7 @@ TAs: Aditya Sridhar, *<TA 2>*
 
 The project involves a retroactive soccer league. The league has 10 teams, each competing to rank as highly as possible after playing once against every other team. Following conventional soccer leagues, a win counts for 3 points, a draw is 1 point, and a loss earns 0 points. The first round of the league is randomized, and you have no control over the outcome. The simulator will look at each of the 45 games and assign a random number of goals to each team in each game. The
 number of goals scored comes from the set {0, 1, 2, 3, 4, 5, 6, 7, 8}, where each of the nine games for a team uses exactly one element of this set. The outcome of all games can be computed based on the goals for each team, and the teams can then have their point totals calculated. Teams are then ranked from 1 to 10 based
-on the point totals. At this point, you can reallocate your goals subject to a set of constraints (see the project website for these constraints). This reallocation is iterated over *r* rounds, where *r* is relatively large. Your team’s point score and rank are computed at the end of each round, and the average rank over all rounds will be called the **final rank**. Your goal for this project is to get as high a final rank as possible.
+on the point totals. At this point, you can reallocate your goals subject to a set of constraints (see the project on the course website for these constraints). This reallocation is iterated over *r* rounds, where *r* is relatively large. Your team’s point score and rank are computed at the end of each round, and the average rank over all rounds will be called the **final rank**. Your goal for this project is to get as high a final rank as possible.
 
 ## Required Installations
 Before you can start working with the simulator and implementing your code, you will first need to set up your environment.
