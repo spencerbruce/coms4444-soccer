@@ -35,6 +35,57 @@ Please follow these instructions for installing Git and forking repositories:
 3.  Add your newly-generated SSH keys to the GitHub account, as done here: https://docs.github.com/en/enterprise/2.20/user/github/authenticating-to-github/adding-a-new-ssh-key-to-your-github-account.
 4.  Fork any repository (to fork, click on "Fork" in the top-right of the page), and clone the forked repository in your local machine inside the parent directory that will house the repository (to copy the remote URL for cloning, click on the "Clone" button, make sure that "Clone with SSH" is visible - the remote URL should start with `git@github.com` - and copy the URL to the clipboard). You should now be able to stage, commit, push, and pull changes using Git.
 
+## Implementation
+
+You will be creating your own player that extends the simulator's abstract player. Please follow these steps to begin your implementation:
+1.  Enter the `coms4444-soccer/soccer` directory, and create a folder called "g*x*" (where *x* is the number of your team). For example, if you are team "g5," please create a folder called "g5" in the `soccer` directory.
+2.  Create a class called `Player` inside your newly-created folder, and copy the following code into Player (the TODOs indicate all changes you need to make):
+
+```
+// TODO change the package name to reflect your team
+package soccer.gx;
+
+import java.util.Random;
+import java.util.List;
+import java.util.Map;
+
+import soccer.sim.Game;
+import soccer.sim.GameHistory;
+
+public class Player implements soccer.sim.Player {
+
+     private int rounds;
+     private Random random;
+     
+     /**
+      * Player constructor
+      *
+      * @param rounds  number of rounds
+      * @param seed    random seed
+      *
+      */
+     public Player(int rounds, int seed) {
+          this.rounds = rounds;
+          this.random = new Random(seed);
+     }
+
+     /**
+      * Reallocate player goals
+      *
+      * @param gameHistory      cumulative game history from all previous rounds
+      * @param playerGames      state of player games before reallocation
+      * @param opponentGameMap  state of opponent games before reallocation (map of opponent team IDs to their games)
+      * @return                 state of player games after reallocation
+      *
+      */
+     public List<Game> reallocate(GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGameMap) {
+          // TODO add your code here to reallocate player goals
+          
+     }
+}
+
+```
+
 ## Submission
 To submit your code for each class and for the final deliverable of the project, you will create a pull request to merge your forked repository's *master* branch into the TA's base repository's *master* branch. The TA will merge the commits from the pull request after the deliverable deadline has passed. The base repository will be updated before the start of the next class meeting.
 
