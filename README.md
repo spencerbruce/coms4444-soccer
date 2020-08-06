@@ -54,7 +54,7 @@ import soccer.sim.GameHistory;
 
 public class Player implements soccer.sim.Player {
 
-     private int rounds;
+     private int teamID, rounds;
      private Random random;
      
      /**
@@ -64,7 +64,8 @@ public class Player implements soccer.sim.Player {
       * @param seed    random seed
       *
       */
-     public Player(int rounds, int seed) {
+     public Player(int teamID, int rounds, int seed) {
+          this.teamID = teamID;
           this.rounds = rounds;
           this.random = new Random(seed);
      }
