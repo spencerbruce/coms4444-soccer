@@ -50,6 +50,8 @@ To submit your code for each class and for the final deliverable of the project,
     * `make gui`: view results/rankings from the GUI
 
 #### Simulator arguments:
+> **[-r | --rounds]**: number of rounds
+
 > **[-p | --players]**: space-separated players/teams
 
 > **[-t | --simTime]**: specified time for simulation runs
@@ -61,6 +63,8 @@ To submit your code for each class and for the final deliverable of the project,
 > **[-v | --verbose]**: flag for recording verbose log during games when logging is enabled
 
 > **[-g | --gui]**: enable the GUI
+
+> **[-f | --fps]**: speed (frames per second), only for the GUI
 
 
 ## Class Design
