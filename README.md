@@ -39,7 +39,7 @@ Please follow these instructions for installing Git and forking repositories:
 
 You will be creating your own player that extends the simulator's abstract player. Please follow these steps to begin your implementation:
 1.  Enter the `coms4444-soccer/soccer` directory, and create a folder called "g*x*" (where *x* is the number of your team). For example, if you are team "g5," please create a folder called "g5" in the `soccer` directory.
-2.  Create a class called `Player` inside your newly-created folder, and copy the following code into Player (the TODOs indicate all changes you need to make):
+2.  Create a class called `Player` inside your newly-created folder, and copy the following code into `Player` (the TODOs indicate all changes you need to make):
 
 ```
 // TODO change the package name to reflect your team
@@ -90,7 +90,10 @@ public class Player implements soccer.sim.Player {
 ```
 
 ## Submission
+You will be submitting your created team folder, which includes the implemented `Player` class and any other helper classes you create. We ask that you please do not modify any code in the `sim` or `random` directories, especially the simulator, when you submit your code. This makes it easier for us to merge in your code.
+
 To submit your code for each class and for the final deliverable of the project, you will create a pull request to merge your forked repository's *master* branch into the TA's base repository's *master* branch. The TA will merge the commits from the pull request after the deliverable deadline has passed. The base repository will be updated before the start of the next class meeting.
+
 
 ## Simulator
 
