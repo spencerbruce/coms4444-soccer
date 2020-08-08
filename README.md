@@ -93,12 +93,13 @@ You will be submitting your created team folder, which includes the implemented 
 
 To submit your code for each class and for the final deliverable of the project, you will create a pull request to merge your forked repository's *master* branch into the TA's base repository's *master* branch. The TA will merge the commits from the pull request after the deliverable deadline has passed. The base repository will be updated before the start of the next class meeting.
 
+Additionally, please comment out or remove any print statements you may have included, as flooding the console with print statements during the simulation will weaken performance and readability.
 
 ## Simulator
 
 #### Steps to run the simulator:
 1.  On your command line, *fork* the Git repository, and then clone the forked version. Do NOT clone the original repository.
-2.  Type `cd coms4444-soccer` to enter the repository.
+2.  Enter `cd coms4444-soccer/src` to enter the source folder of the repository.
 3.  Run `make compile` to generate the make file.
 4.  Update the make file with the set of teams participating in the game.
 5.  Run one of the following:
