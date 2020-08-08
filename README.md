@@ -42,17 +42,16 @@ You will be creating your own player that extends the simulator's abstract playe
 2.  Create a class called `Player` inside your newly-created folder, and copy the following code into `Player` (the TODOs indicate all changes you need to make):
 
 ```
-// TODO change the package name to reflect your team
-package soccer.gx;
+package gx; // TODO modify the package name to reflect your team
 
 import java.util.Random;
 import java.util.List;
 import java.util.Map;
 
-import soccer.sim.Game;
-import soccer.sim.GameHistory;
+import sim.Game;
+import sim.GameHistory;
 
-public class Player implements soccer.sim.Player {
+public class Player extends sim.Player {
 
      private int teamID, rounds, seed;
      private Random random;
@@ -84,9 +83,9 @@ public class Player implements soccer.sim.Player {
      public List<Game> reallocate(GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGameMap) {
           // TODO add your code here to reallocate player goals
           
+          return null; // TODO modify the return statement to return your list of reallocated player games
      }
 }
-
 ```
 
 ## Submission
