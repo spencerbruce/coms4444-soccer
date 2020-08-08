@@ -72,14 +72,14 @@ public class Player extends sim.Player {
      /**
       * Reallocate player goals
       *
-      * @param round            current round
-      * @param gameHistory      cumulative game history from all previous rounds
-      * @param playerGames      state of player games before reallocation
-      * @param opponentGameMap  state of opponent games before reallocation (map of opponent team IDs to their games)
-      * @return                 state of player games after reallocation
+      * @param round             current round
+      * @param gameHistory       cumulative game history from all previous rounds
+      * @param playerGames       state of player games before reallocation
+      * @param opponentGamesMap  state of opponent games before reallocation (map of opponent team IDs to their games)
+      * @return                  state of player games after reallocation
       *
       */
-     public List<Game> reallocate(int round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGameMap) {
+     public List<Game> reallocate(int round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap) {
           // TODO add your code here to reallocate player goals
           
           return null; // TODO modify the return statement to return your list of reallocated player games
