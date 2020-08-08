@@ -5,8 +5,11 @@
 
 # Class files
 *.class
-soccer/sim/*.class
-soccer/random/*.class
+soccer/src/sim/*.class
+soccer/src/random/*.class
+
+# Bin folder
+bin/
 
 # Log file
 *.log
