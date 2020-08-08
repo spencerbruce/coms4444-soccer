@@ -53,7 +53,7 @@ public abstract class Player {
 				return false;
 			
 			// Constraint 4
-			int halfNumPlayerGoals = (int) Math.ceil(((double) originalPlayerGame.getNumPlayerGoals()) / 2);
+			int halfNumPlayerGoals = originalPlayerGame.getHalfNumPlayerGoals();
 			boolean numReallocatedPlayerGoalsLessThanHalf = 
 					reallocatedPlayerGame.getNumPlayerGoals() < (originalPlayerGame.getNumPlayerGoals() - halfNumPlayerGoals);
 			if(isOriginalWinningGame && numReallocatedPlayerGoalsLessThanHalf)
@@ -70,7 +70,7 @@ public abstract class Player {
 		return true;
 	}
 
-    public abstract List<Game> reallocate(GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGameMap);
+    public abstract List<Game> reallocate(int round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGameMap);
     
     public boolean hasWonGame(Game game) {
     	return game.getNumPlayerGoals() > game.getNumOpponentGoals();

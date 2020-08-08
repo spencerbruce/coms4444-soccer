@@ -48,4 +48,8 @@ public class Score {
 	public Integer getNumOpponentGoals() {
 		return numOpponentGoals;
 	}
+	
+	public Score cloneScore() {
+		return new Score(this.numPlayerGoals, this.numOpponentGoals);
+	}
 }
