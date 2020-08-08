@@ -7,61 +7,44 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Log {
-	private static FileWriter fileWriter;
-	private static boolean active = false;
-	private static boolean v = false;
-	
-	public static void activate() {
-		active = true;
-	}
 
-	public static void verbose() {
-		v = true;
-	}
+	private static FileWriter fileWriter;
 	
 	public static void setLogFile(String filename) {
 		try {
 			fileWriter = new FileWriter(filename, true);
-		} catch (IOException e) {
+		} catch(IOException e) {
 			e.printStackTrace();
 		}
 	}
-
-	public static void log(String str) {
-		if (!active) return;
-		dump(str);
-	}
-
 	
-	public static void record(String str) {
-		if (!v) return;
-		dump(str);
-		
-	}
-
-	private static void dump(String str)
-	{
+	public static void writeToLogFile(String content) {
 		DateFormat dateFormat = new SimpleDateFormat("[yyyy/MM/dd HH:mm:ss.SSS] ");
 		Date date = new Date();
-		str = dateFormat.format(date) + str + "\n";
-		// System.err.print(str);
-		System.out.println(str);
-		if (fileWriter == null) return;
+		
+		String datedContent = dateFormat.format(date) + content + "\n";
+		System.out.println(datedContent);
+
+		if(fileWriter == null)
+			return;
+
 		try {
-			fileWriter.append(str);
-		} catch (IOException e) {
+			fileWriter.append(datedContent);
+		} catch(IOException e) {
 			e.printStackTrace();
-		}
+		}		
 	}
 
-	public static void end()
-	{
-		if (fileWriter == null) return;
+	public static void closeLogFile() {
+		if(fileWriter == null)
+			return;
+
 		try {
 			fileWriter.close();
-		} catch (IOException e) {
+		} catch(IOException e) {
 			e.printStackTrace();
 		}
+
 		fileWriter = null;
 	}
 }

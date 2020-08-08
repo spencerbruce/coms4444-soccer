@@ -23,20 +23,20 @@ public abstract class Player {
 	 */
 	public boolean checkConstraintsSatisfied(List<Game> originalPlayerGames, List<Game> reallocatedPlayerGames) {
 		
-		Map<Integer, Game> originalPlayerGameMap = new HashMap<>();
+		Map<Integer, Game> originalPlayerGamesMap = new HashMap<>();
 		for(Game originalPlayerGame : originalPlayerGames)
-			originalPlayerGameMap.put(originalPlayerGame.getID(), originalPlayerGame);
-		Map<Integer, Game> reallocatedPlayerGameMap = new HashMap<>();
+			originalPlayerGamesMap.put(originalPlayerGame.getID(), originalPlayerGame);
+		Map<Integer, Game> reallocatedPlayerGamesMap = new HashMap<>();
 		for(Game reallocatedPlayerGame : reallocatedPlayerGames)
-			reallocatedPlayerGameMap.put(reallocatedPlayerGame.getID(), reallocatedPlayerGame);
+			reallocatedPlayerGamesMap.put(reallocatedPlayerGame.getID(), reallocatedPlayerGame);
 		
 		int totalNumOriginalPlayerGoals = 0, totalNumReallocatedPlayerGoals = 0;
 		for(Game originalPlayerGame : originalPlayerGames) {
 			
-			if(!reallocatedPlayerGameMap.containsKey(originalPlayerGame.getID()))
+			if(!reallocatedPlayerGamesMap.containsKey(originalPlayerGame.getID()))
 				continue;
 
-			Game reallocatedPlayerGame = reallocatedPlayerGameMap.get(originalPlayerGame.getID());
+			Game reallocatedPlayerGame = reallocatedPlayerGamesMap.get(originalPlayerGame.getID());
 			boolean isOriginalWinningGame = originalPlayerGame.getNumPlayerGoals() > originalPlayerGame.getNumOpponentGoals();
 			
 			// Constraint 1
@@ -70,7 +70,7 @@ public abstract class Player {
 		return true;
 	}
 
-    public abstract List<Game> reallocate(int round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGameMap);
+    public abstract List<Game> reallocate(int round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap);
     
     public boolean hasWonGame(Game game) {
     	return game.getNumPlayerGoals() > game.getNumOpponentGoals();
