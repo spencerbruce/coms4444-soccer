@@ -15,9 +15,7 @@ TAs: Aditya Sridhar, *<TA 2>*
           alt="Soccer Ball" />
 </p>
 
-The project involves a retroactive soccer league. The league has 10 teams, each competing to rank as highly as possible after playing once against every other team. Following conventional soccer leagues, a win counts for 3 points, a draw is 1 point, and a loss earns 0 points. The first round of the league is randomized, and you have no control over the outcome. The simulator will look at each of the 45 games and assign a random number of goals to each team in each game. The
-number of goals scored comes from the set {0, 1, 2, 3, 4, 5, 6, 7, 8}, where each of the nine games for a team uses exactly one element of this set. The outcome of all games can be computed based on the goals for each team, and the teams can then have their point totals calculated. Teams are then ranked from 1 to 10 based
-on the point totals. At this point, you can reallocate your goals subject to a set of constraints (see the project on the course website for these constraints). This reallocation is iterated over *r* rounds, where *r* is relatively large. Your team’s point score and rank are computed at the end of each round, and the average rank over all rounds will be called the **final rank**. Your goal for this project is to get as high a final rank as possible.
+The project involves a retroactive soccer league. The league has 10 teams, each competing to rank as highly as possible after playing once against every other team. Following conventional soccer leagues, a win counts for 3 points, a draw is 1 point, and a loss earns 0 points. The first round of the league is randomized, and you have no control over the outcome. The simulator will look at each of the 45 games and assign a random number of goals to each team in each game. The number of goals scored comes from the set {0, 1, 2, 3, 4, 5, 6, 7, 8}, where each of the nine games for a team uses exactly one element of this set. The outcome of all games can be computed based on the goals for each team, and the teams can then have their point totals calculated. Teams are then ranked from 1 to 10 based on the point totals. At this point, you can reallocate your goals subject to a set of constraints (see the project on the course website for these constraints). This reallocation is iterated over *r* rounds, where *r* is relatively large. Your team’s point score and rank are computed at the end of each round, and the average rank over all rounds will be called the **final rank**. Your goal for this project is to get as high a final rank as possible.
 
 ## Required Installations
 Before you can start working with the simulator and implementing your code, you will first need to set up your environment.
@@ -38,7 +36,7 @@ Please follow these instructions for installing Git and forking repositories:
 ## Implementation
 
 You will be creating your own player that extends the simulator's abstract player. Please follow these steps to begin your implementation:
-1.  Enter the `coms4444-soccer/soccer` directory, and create a folder called "g*x*" (where *x* is the number of your team). For example, if you are team "g5," please create a folder called "g5" in the `soccer` directory.
+1.  Enter the `coms4444-soccer/src` source directory, and create a folder called "g*x*" (where *x* is the number of your team). For example, if you are team "g5," please create a folder called "g5" in the `src` directory.
 2.  Create a class called `Player` inside your newly-created folder, and copy the following code into `Player` (the TODOs indicate all changes you need to make):
 
 ```
