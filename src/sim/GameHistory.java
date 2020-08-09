@@ -1,11 +1,13 @@
 package sim;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GameHistory {
+public class GameHistory implements Serializable {
 
+	private static final long serialVersionUID = 1L;
 	private Map<Integer, Map<Integer, Integer>> allRankingsMap = new HashMap<>();
 	private Map<Integer, Map<Integer, Integer>> averageRankingsMap = new HashMap<>();
 	private Map<Integer, Map<Integer, List<Game>>> gamesMap = new HashMap<>();

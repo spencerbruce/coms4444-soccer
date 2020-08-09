@@ -1,9 +1,12 @@
 package sim;
 
-public class PlayerPoints {
+import java.io.Serializable;
+
+public class PlayerPoints implements Serializable {
 	
 	private Integer numPoints;
 	
+	private static final long serialVersionUID = 1L;
 	private static final Integer WIN_POINTS = 3;
 	private static final Integer DRAW_POINTS = 1;
 	private static final Integer LOSS_POINTS = 0;
