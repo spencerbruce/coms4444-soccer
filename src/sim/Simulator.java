@@ -242,57 +242,5 @@ public class Simulator {
 		setUpStructures();
 		parseCommandLineArguments(args);
 		runSimulation();
-		
-		List<PlayerPoints> playerPointsList = new ArrayList<>();
-		playerPointsList.add(new PlayerPoints(10));
-		playerPointsList.add(new PlayerPoints(23));
-		playerPointsList.add(new PlayerPoints(10));
-		playerPointsList.add(new PlayerPoints(135));
-		playerPointsList.add(new PlayerPoints(10));
-		playerPointsList.add(new PlayerPoints(10));
-		playerPointsList.add(new PlayerPoints(45));
-		
-		Map<Integer, PlayerPoints> map = new HashMap<>();
-		map.put(1, playerPointsList.get(0));
-		map.put(2, playerPointsList.get(1));
-		map.put(3, playerPointsList.get(2));
-		map.put(4, playerPointsList.get(3));
-		map.put(5, playerPointsList.get(4));
-		map.put(6, playerPointsList.get(5));
-		map.put(7, playerPointsList.get(6));
-		
-		Map<Integer, PlayerPoints> result = map.entrySet()
-				  .stream()
-				  .sorted(Map.Entry.comparingByValue())
-				  .collect(Collectors.toMap(
-				    Map.Entry::getKey, 
-				    Map.Entry::getValue,
-				    (oldValue, newValue) -> oldValue, LinkedHashMap::new));
-//		System.out.println(map);
-//		System.out.println(result);
-//		System.out.println(computeRankings(map));
-		
-		playerWrappers.add(null);
-		playerWrappers.add(null);
-		playerWrappers.add(null);
-		playerWrappers.add(null);
-		playerWrappers.add(null);
-		playerWrappers.add(null);
-		playerWrappers.add(null);
-		playerWrappers.add(null);
-		playerWrappers.add(null);
-		playerWrappers.add(null);
-		randomGameGrid = new Integer[10][10];
-		generateRandomGameGrid();
-		System.out.println();
-		for(int i = 0; i < randomGameGrid.length; i++) {
-			for(int j = 0; j < randomGameGrid[i].length; j++)
-				System.out.print(randomGameGrid[i][j] + " ");
-			System.out.println();
-		}
-		
-		List<Game> playerGames = assignGamesToPlayers(playerWrappers.get(0));
-		for(Game game : playerGames)
-			System.out.println(game.getScoreAsString());
 	}
 }
