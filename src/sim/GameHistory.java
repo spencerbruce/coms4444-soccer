@@ -8,40 +8,50 @@ import java.util.Map;
 public class GameHistory implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	private Map<Integer, Map<Integer, Integer>> allRankingsMap = new HashMap<>();
-	private Map<Integer, Map<Integer, Integer>> averageRankingsMap = new HashMap<>();
-	private Map<Integer, Map<Integer, List<Game>>> gamesMap = new HashMap<>();
-	private Map<Integer, Map<Integer, PlayerPoints>> pointsMap = new HashMap<>();
 	
-	public Map<Integer, Map<Integer, Integer>> getAllRankingsMap() {
-		return allRankingsMap;
+	private Map<Integer, Map<Integer, Double>> allRoundRankingsMap = new HashMap<>();
+	private Map<Integer, Map<Integer, Double>> allAverageRankingsMap = new HashMap<>();
+	private Map<Integer, Map<Integer, List<Game>>> allGamesMap = new HashMap<>();
+	private Map<Integer, Map<Integer, PlayerPoints>> allRoundPointsMap = new HashMap<>();
+	private Map<Integer, Map<Integer, PlayerPoints>> allCumulativePointsMap = new HashMap<>();
+	
+	public Map<Integer, Map<Integer, Double>> getAllRoundRankingsMap() {
+		return allRoundRankingsMap;
 	}
 	
-	public void addRoundRankings(Integer round, Map<Integer, Integer> roundRankingsMap) {
-		allRankingsMap.put(round, roundRankingsMap);
+	public void addRoundRankings(Integer round, Map<Integer, Double> roundRankingsMap) {
+		allRoundRankingsMap.put(round, roundRankingsMap);
 	}
 	
-	public Map<Integer, Map<Integer, Integer>> getAverageRankingsMap() {
-		return averageRankingsMap;
+	public Map<Integer, Map<Integer, Double>> getAllAverageRankingsMap() {
+		return allAverageRankingsMap;
 	}
 
-	public void addAverageRankings(Integer round, Map<Integer, Integer> roundAverageRankingsMap) {
-		averageRankingsMap.put(round, roundAverageRankingsMap);
+	public void addRoundAverageRankings(Integer round, Map<Integer, Double> roundAverageRankingsMap) {
+		allAverageRankingsMap.put(round, roundAverageRankingsMap);
 	}
 	
-	public Map<Integer, Map<Integer, List<Game>>> getGamesMap() {
-		return gamesMap;
+	public Map<Integer, Map<Integer, List<Game>>> getAllGamesMap() {
+		return allGamesMap;
 	}
 	
-	public Map<Integer, Map<Integer, PlayerPoints>> getPointsMap() {
-		return pointsMap;
-	}
-	
-	public void addGames(Integer round, Map<Integer, List<Game>> roundGamesMap) {
-		gamesMap.put(round, roundGamesMap);
+	public void addRoundGames(Integer round, Map<Integer, List<Game>> roundGamesMap) {
+		allGamesMap.put(round, roundGamesMap);
 	}
 
-	public void addPoints(Integer round, Map<Integer, PlayerPoints> roundPointsMap) {
-		pointsMap.put(round, roundPointsMap);
+	public Map<Integer, Map<Integer, PlayerPoints>> getAllRoundPointsMap() {
+		return allRoundPointsMap;
+	}
+	
+	public void addRoundPoints(Integer round, Map<Integer, PlayerPoints> roundPointsMap) {
+		allRoundPointsMap.put(round, roundPointsMap);
+	}
+
+	public Map<Integer, Map<Integer, PlayerPoints>> getAllCumulativePointsMap() {
+		return allCumulativePointsMap;
+	}
+	
+	public void addRoundCumulativePoints(Integer round, Map<Integer, PlayerPoints> roundCumulativePointsMap) {
+		allCumulativePointsMap.put(round, roundCumulativePointsMap);
 	}
 }

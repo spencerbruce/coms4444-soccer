@@ -72,15 +72,15 @@ public abstract class Player {
 
     public abstract List<Game> reallocate(int round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap);
     
-    public boolean hasWonGame(Game game) {
+    public static boolean hasWonGame(Game game) {
     	return game.getNumPlayerGoals() > game.getNumOpponentGoals();
     }
 
-    public boolean hasLostGame(Game game) {
+    public static boolean hasLostGame(Game game) {
     	return game.getNumPlayerGoals() < game.getNumOpponentGoals();    	
     }
     
-    public boolean hasDrawnGame(Game game) {
+    public static boolean hasDrawnGame(Game game) {
     	return game.getNumPlayerGoals() == game.getNumOpponentGoals();    	
     }
 }

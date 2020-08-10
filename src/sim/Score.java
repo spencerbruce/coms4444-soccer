@@ -5,10 +5,11 @@ import java.io.Serializable;
 public class Score implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
+	
 	private Integer numPlayerGoals;
 	private Integer numOpponentGoals;
 	
-	private Score(Integer numPlayerGoals, Integer numOpponentGoals) {
+	public Score(Integer numPlayerGoals, Integer numOpponentGoals) {
 		this.numPlayerGoals = numPlayerGoals;
 		this.numOpponentGoals = numOpponentGoals;
 	}

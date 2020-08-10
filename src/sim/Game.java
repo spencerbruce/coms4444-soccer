@@ -5,10 +5,11 @@ import java.io.Serializable;
 public class Game implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+	
 	private Integer gameID;
 	private Score score;
 	
-	private static final Integer MAX_GOAL_THRESHOLD = 8;
+	private static final transient Integer MAX_GOAL_THRESHOLD = 8;
 	
 	public Game(Integer gameID, Score score) {
 		this.gameID = gameID;

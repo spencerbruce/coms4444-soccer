@@ -107,7 +107,7 @@ public class HTTPServer {
                 out.write(buffer, 0, bytes);
             }
             if(length != 0)
-                throw new IOException("File modified during send");
+                throw new IOException("The file was modified during the reply!");
         } finally {
             try {
                 in.close();

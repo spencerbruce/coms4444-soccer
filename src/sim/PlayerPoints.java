@@ -2,14 +2,19 @@ package sim;
 
 import java.io.Serializable;
 
-public class PlayerPoints implements Serializable {
+public class PlayerPoints implements Comparable<PlayerPoints>, Serializable {
 	
 	private Integer numPoints;
 	
 	private static final long serialVersionUID = 1L;
-	private static final Integer WIN_POINTS = 3;
-	private static final Integer DRAW_POINTS = 1;
-	private static final Integer LOSS_POINTS = 0;
+	
+	private static final transient Integer WIN_POINTS = 3;
+	private static final transient Integer DRAW_POINTS = 1;
+	private static final transient Integer LOSS_POINTS = 0;
+	
+	public PlayerPoints() {
+		this.numPoints = 0;
+	}
 	
 	public PlayerPoints(Integer numPoints) {
 		this.numPoints = numPoints;
@@ -57,5 +62,15 @@ public class PlayerPoints implements Serializable {
 	
 	public static Integer getLossPointValue() {
 		return LOSS_POINTS;
+	}
+
+	@Override
+	public String toString() {
+		return "Team points: " + numPoints;
+	}
+	
+	@Override
+	public int compareTo(PlayerPoints playerPoints) {
+		return (int) this.numPoints - playerPoints.getTotalPoints();
 	}
 }
