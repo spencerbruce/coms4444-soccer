@@ -4,6 +4,8 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import JSONObject;
+
 public class Simulator {
 	
 	private static GameHistory gameHistory;
@@ -20,12 +22,15 @@ public class Simulator {
     private static long timeout = 1000;
     private static boolean showGUI = false;
     private static String version = "1.0";
+	private static String projectPath, staticsPath;
     	
 	private static void setUpStructures() {
 		gameHistory = new GameHistory();
 		playerWrappers = new ArrayList<>();
 		randomGameGrid = new Integer[playerWrappers.size()][playerWrappers.size()];
 		random = new Random(seed);
+		projectPath = new File(".").getAbsolutePath();
+		staticsPath = projectPath + File.separator + "statics";
 	}
 	
 	private static Map<Integer, PlayerPoints> computeTeamPoints(Map<Integer, List<Game>> roundGamesMap) {
@@ -155,29 +160,139 @@ public class Simulator {
 		return playerGames;
 	}
 	
-	private static Object deepClone(Object obj) {
-		return null;
+	private static <T extends Object> T deepClone(T obj) {
+        if(obj == null)
+            return null;
+
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+            objectOutputStream.writeObject(obj);
+            ByteArrayInputStream bais = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+            ObjectInputStream objectInputStream = new ObjectInputStream(bais);
+            
+            return (T) objectInputStream.readObject();
+        }
+        catch(Exception e) {
+            return null;
+        }
 	}
 	
-	private static PlayerWrapper loadPlayerWrapper(String playerName) {
-		return null;
-	}
+	private static PlayerWrapper loadPlayerWrapper(String playerName, String modifiedPlayerName) {
+		Log.writeToLogFile("Loading player " + playerName + "...");
+
+		Player player = loadPlayer(playerName);
+        if(player == null) {
+            Log.writeToLogFile("Cannot load player " + playerName + "!");
+            System.exit(1);
+        }
+
+        return new PlayerWrapper(player, modifiedPlayerName, timeout);
+    }
 	
 	private static Player loadPlayer(String playerName) {
 		return null;
 	}
 	
 	private static void updateGUI(HTTPServer server, String content) {
+		if(server == null)
+			return;
 		
+        String guiPath = null;
+        while(true) {
+            while(true) {
+                try {
+                	guiPath = server.request();
+                    break;
+                } catch(IOException e) {
+                    Log.writeToLogFile("HTTP request error: " + e.getMessage());
+                }
+            }
+            
+            if(guiPath.equals("data.txt")) {
+                try {
+                    server.reply(content);
+                } catch(IOException e) {
+                    Log.writeToLogFile("HTTP dynamic reply error: " + e.getMessage());
+                }
+                return;
+            }
+            
+            if(guiPath.equals(""))
+            	guiPath = "webpage.html";
+            else if(!Character.isLetter(guiPath.charAt(0))) {
+                Log.writeToLogFile("Potentially malicious HTTP request: \"" + guiPath + "\"");
+                break;
+            }
+
+            try {
+                File file = new File(staticsPath + File.separator + guiPath);
+                server.reply(file);
+            } catch(IOException e) {
+                Log.writeToLogFile("HTTP static reply error: " + e.getMessage());
+            }
+        }		
 	}
 	
 	private static String getGUIState(double fps) {
-		return null;
+		return "";
 	}
 	
 	public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException {
 		setUpStructures();
 		parseCommandLineArguments(args);
 		runSimulation();
+		
+		List<PlayerPoints> playerPointsList = new ArrayList<>();
+		playerPointsList.add(new PlayerPoints(10));
+		playerPointsList.add(new PlayerPoints(23));
+		playerPointsList.add(new PlayerPoints(10));
+		playerPointsList.add(new PlayerPoints(135));
+		playerPointsList.add(new PlayerPoints(10));
+		playerPointsList.add(new PlayerPoints(10));
+		playerPointsList.add(new PlayerPoints(45));
+		
+		Map<Integer, PlayerPoints> map = new HashMap<>();
+		map.put(1, playerPointsList.get(0));
+		map.put(2, playerPointsList.get(1));
+		map.put(3, playerPointsList.get(2));
+		map.put(4, playerPointsList.get(3));
+		map.put(5, playerPointsList.get(4));
+		map.put(6, playerPointsList.get(5));
+		map.put(7, playerPointsList.get(6));
+		
+		Map<Integer, PlayerPoints> result = map.entrySet()
+				  .stream()
+				  .sorted(Map.Entry.comparingByValue())
+				  .collect(Collectors.toMap(
+				    Map.Entry::getKey, 
+				    Map.Entry::getValue,
+				    (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+//		System.out.println(map);
+//		System.out.println(result);
+//		System.out.println(computeRankings(map));
+		
+		playerWrappers.add(null);
+		playerWrappers.add(null);
+		playerWrappers.add(null);
+		playerWrappers.add(null);
+		playerWrappers.add(null);
+		playerWrappers.add(null);
+		playerWrappers.add(null);
+		playerWrappers.add(null);
+		playerWrappers.add(null);
+		playerWrappers.add(null);
+		randomGameGrid = new Integer[10][10];
+		generateRandomGameGrid();
+		System.out.println();
+		for(int i = 0; i < randomGameGrid.length; i++) {
+			for(int j = 0; j < randomGameGrid[i].length; j++)
+				System.out.print(randomGameGrid[i][j] + " ");
+			System.out.println();
+		}
+		
+		List<Game> playerGames = assignGamesToPlayers(playerWrappers.get(0));
+		for(Game game : playerGames)
+			System.out.println(game.getScoreAsString());
 	}
 }
