@@ -51,7 +51,7 @@ import sim.GameHistory;
 
 public class Player extends sim.Player {
 
-     private int teamID, rounds, seed;
+     private Integer teamID, rounds, seed;
      private Random random;
      
      /**
@@ -62,7 +62,7 @@ public class Player extends sim.Player {
       * @param seed    random seed
       *
       */
-     public Player(int teamID, int rounds, int seed) {
+     public Player(Integer teamID, Integer rounds, Integer seed) {
           this.teamID = teamID;
           this.rounds = rounds;
           this.seed = seed;
@@ -79,7 +79,7 @@ public class Player extends sim.Player {
       * @return                  state of player games after reallocation
       *
       */
-     public List<Game> reallocate(int round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap) {
+     public List<Game> reallocate(Integer round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap) {
           // TODO add your code here to reallocate player goals
           
           return null; // TODO modify the return statement to return your list of reallocated player games
