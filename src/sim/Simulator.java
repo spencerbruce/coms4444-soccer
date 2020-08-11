@@ -1,35 +1,43 @@
 package sim;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import JSONObject;
+import javax.tools.JavaCompiler;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
 
 public class Simulator {
 	
 	private static GameHistory gameHistory;
 	private static List<PlayerWrapper> playerWrappers;
+	private static List<String> playerNames;
 	private static Integer[][] randomGameGrid;
     private static Random random;
 	
 	// Constants
 	private static int seed = 42;
-	private static int fps = 30;
 	private static int rounds = 10;
+	private static double fps = 30;
 	
     private static int currentRound = 0;
     private static long timeout = 1000;
     private static boolean showGUI = false;
+    private static boolean continuousGUI = true;
     private static String version = "1.0";
-	private static String projectPath, staticsPath;
+	private static String projectPath, sourcePath, staticsPath;
     	
-	private static void setUpStructures() {
+	
+	private static void setup() {
 		gameHistory = new GameHistory();
-		playerWrappers = new ArrayList<>();
-		randomGameGrid = new Integer[playerWrappers.size()][playerWrappers.size()];
-		random = new Random(seed);
-		projectPath = new File(".").getAbsolutePath();
+		random = new Random(seed);		
+		projectPath = new File(".").getAbsolutePath().substring(0, 
+				new File(".").getAbsolutePath().indexOf("coms4444-soccer") + "coms4444-soccer".length());
+		sourcePath = projectPath + File.separator + "src";
 		staticsPath = projectPath + File.separator + "statics";
 	}
 	
@@ -124,14 +132,104 @@ public class Simulator {
 	}
 
 	private static void runSimulation() {
+		// Round 0: simulator game randomization
+		generateRandomGameGrid();
+		for(PlayerWrapper playerWrapper : playerWrappers) {
+			List<Game> randomPlayerGames = assignGamesToPlayer(playerWrapper);
+		}
 		
+		// Reallocation rounds
+		for(int i = 1; i <= rounds; i++) {
+			currentRound = i;
+			for(PlayerWrapper playerWrapper : playerWrappers) {
+//				playerWrapper.reallocate(currentRound, deepClone(gameHistory), deepClone(playerGames), deepClone(opponentGamesMap));
+			}
+		}
 	}
 	
 	private static void parseCommandLineArguments(String[] args) {
-		
+		playerWrappers = new ArrayList<>();
+		playerNames = new ArrayList<>();
+
+		for(int i = 0; i < args.length; i++) {
+            switch (args[i].charAt(0)) {
+                case '-':
+                    if(args[i].equals("-p") || args[i].equals("--players")) {
+                        while(i + 1 < args.length && args[i + 1].charAt(0) != '-') {
+                            i++;
+                            String playerName = args[i];
+                            playerNames.add(playerName);
+                            try {
+								playerWrappers.add(loadPlayerWrapper(cleanName(playerName), playerName));
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+                        }
+
+                        if(playerNames.size() < 2) 
+                            throw new IllegalArgumentException("You entered an invalid number of teams. At least 2 teams are required for the league.");
+                    } 
+                    else if(args[i].equals("-g") || args[i].equals("--gui"))
+                        showGUI = true;
+                    else if(args[i].equals("-c") || args[i].equals("--continuous"))
+                        continuousGUI = true;
+                    else if(args[i].equals("-d") || args[i].equals("--discrete"))
+                        continuousGUI = false;
+                    else if(args[i].equals("-l") || args[i].equals("--log")) {
+                        i++;
+                    	if(i == args.length) 
+                            throw new IllegalArgumentException("The log file name is missing!");
+                        Log.setLogFile(args[i]);
+                        Log.assignLoggingStatus(true);
+                    }
+                    else if(args[i].equals("-v") || args[i].equals("--verbose"))
+                        Log.assignVerbosityStatus(true);
+                    else if(args[i].equals("-f") || args[i].equals("--fps")) {
+                    	i++;
+                        if(i == args.length) 
+                            throw new IllegalArgumentException("The GUI frames per second is missing!");
+                        fps = Double.parseDouble(args[i]);
+                    }
+                    else if(args[i].equals("-s") || args[i].equals("--seed")) {
+                    	i++;
+                        if(i == args.length) 
+                            throw new IllegalArgumentException("The seed number is missing!");
+                        seed = Integer.parseInt(args[i]);
+                    }
+                    else if(args[i].equals("-r") || args[i].equals("--rounds")) {
+                    	i++;
+                        if (i == args.length) 
+                            throw new IllegalArgumentException("The total number of rounds is not specified!");
+                        rounds = Integer.parseInt(args[i]);
+                    }
+                    else 
+                        throw new IllegalArgumentException("Unknown argument \"" + args[i] + "\"!");
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown argument \"" + args[i] + "\"!");
+            }
+        }
+
+        Log.writeToLogFile("Project: Retroactive Soccer");
+        Log.writeToLogFile("Simulator Version: " + version);
+        Log.writeToLogFile("Players: " + playerNames.toString());
+        Log.writeToLogFile("GUI: " + (showGUI ? "enabled" : "disabled"));
 	}
 	
+	private static String cleanName(String playerName) {
+       String cleanedPlayerName = " ";
+       if(playerName.contains("_")) {
+           Integer index = playerName.lastIndexOf("_");
+           cleanedPlayerName = playerName.substring(0, index);
+       }
+       else
+           return playerName;
+
+       return cleanedPlayerName;
+    }
+	
 	private static void generateRandomGameGrid() {
+		randomGameGrid = new Integer[playerWrappers.size()][playerWrappers.size()];
 		for(int i = 0; i < randomGameGrid.length; i++)
 			for(int j = 0; j < randomGameGrid[i].length; j++) {
 				if(i == j)
@@ -141,7 +239,7 @@ public class Simulator {
 			}
 	}
 	
-	private static List<Game> assignGamesToPlayers(PlayerWrapper playerWrapper) {
+	private static List<Game> assignGamesToPlayer(PlayerWrapper playerWrapper) {
 		List<Game> playerGames = new ArrayList<>();
 		
 		int indexOfPlayerWrapper = playerWrappers.indexOf(playerWrapper);
@@ -178,10 +276,11 @@ public class Simulator {
         }
 	}
 	
-	private static PlayerWrapper loadPlayerWrapper(String playerName, String modifiedPlayerName) {
+	private static PlayerWrapper loadPlayerWrapper(String playerName, String modifiedPlayerName) throws Exception {
 		Log.writeToLogFile("Loading player " + playerName + "...");
 
-		Player player = loadPlayer(playerName);
+		int teamID = playerWrappers.size() + 1;
+		Player player = loadPlayer(playerName, teamID);
         if(player == null) {
             Log.writeToLogFile("Cannot load player " + playerName + "!");
             System.exit(1);
@@ -190,8 +289,72 @@ public class Simulator {
         return new PlayerWrapper(player, modifiedPlayerName, timeout);
     }
 	
-	private static Player loadPlayer(String playerName) {
-		return null;
+	private static Player loadPlayer(String playerName, int teamID) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		String playerPackagePath = sourcePath + File.separator + playerName;
+        Set<File> playerFiles = getFilesInDirectory(playerPackagePath, ".java");
+		String simPath = sourcePath + File.separator + "sim";
+        Set<File> simFiles = getFilesInDirectory(simPath, ".java");
+
+        File classFile = new File(playerPackagePath + File.separator + "Player.class");
+
+        long classModified = classFile.exists() ? classFile.lastModified() : -1;
+        if(classModified < 0 || classModified < lastModified(playerFiles) || classModified < lastModified(simFiles)) {
+            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+            if(compiler == null)
+                throw new IOException("Cannot find the Java compiler!");
+
+            StandardJavaFileManager manager = compiler.getStandardFileManager(null, null, null);
+            Log.writeToLogFile("Compiling for team " + playerName + "...");
+
+            if(!compiler.getTask(null, manager, null, null, null, manager.getJavaFileObjectsFromFiles(playerFiles)).call())
+                throw new IOException("The compilation failed!");
+            
+            classFile = new File(playerPackagePath + File.separator + "Player.class");
+            if(!classFile.exists())
+                throw new FileNotFoundException("The class file is missing!");
+        }
+
+        ClassLoader loader = Simulator.class.getClassLoader();
+        if(loader == null)
+            throw new IOException("Cannot find the Java class loader!");
+
+        @SuppressWarnings("rawtypes")
+        Class rawClass = loader.loadClass(playerName + ".Player");
+        Class[] classArgs = new Class[]{Integer.class, Integer.class, Integer.class};
+
+        return (Player) rawClass.getDeclaredConstructor(classArgs).newInstance(teamID, rounds, seed);
+    }
+
+	private static long lastModified(Iterable<File> files) {
+        long lastDate = 0;
+        for(File file : files) {
+            long date = file.lastModified();
+            if(lastDate < date)
+                lastDate = date;
+        }
+        return lastDate;
+    }
+	
+	private static Set<File> getFilesInDirectory(String path, String extension) {
+		Set<File> files = new HashSet<File>();
+        Set<File> previousDirectories = new HashSet<File>();
+        previousDirectories.add(new File(path));
+        do {
+        	Set<File> nextDirectories = new HashSet<File>();
+            for(File previousDirectory : previousDirectories)
+                for(File file : previousDirectory.listFiles()) {
+                    if(!file.canRead())
+                    	continue;
+                    
+                    if(file.isDirectory())
+                        nextDirectories.add(file);
+                    else if(file.getPath().endsWith(extension))
+                        files.add(file);
+                }
+            previousDirectories = nextDirectories;
+        } while(!previousDirectories.isEmpty());
+        
+        return files;
 	}
 	
 	private static void updateGUI(HTTPServer server, String content) {
@@ -205,7 +368,7 @@ public class Simulator {
                 	guiPath = server.request();
                     break;
                 } catch(IOException e) {
-                    Log.writeToLogFile("HTTP request error: " + e.getMessage());
+                    Log.writeToVerboseLogFile("HTTP request error: " + e.getMessage());
                 }
             }
             
@@ -213,7 +376,7 @@ public class Simulator {
                 try {
                     server.reply(content);
                 } catch(IOException e) {
-                    Log.writeToLogFile("HTTP dynamic reply error: " + e.getMessage());
+                    Log.writeToVerboseLogFile("HTTP dynamic reply error: " + e.getMessage());
                 }
                 return;
             }
@@ -221,7 +384,7 @@ public class Simulator {
             if(guiPath.equals(""))
             	guiPath = "webpage.html";
             else if(!Character.isLetter(guiPath.charAt(0))) {
-                Log.writeToLogFile("Potentially malicious HTTP request: \"" + guiPath + "\"");
+                Log.writeToVerboseLogFile("Potentially malicious HTTP request: \"" + guiPath + "\"");
                 break;
             }
 
@@ -229,7 +392,7 @@ public class Simulator {
                 File file = new File(staticsPath + File.separator + guiPath);
                 server.reply(file);
             } catch(IOException e) {
-                Log.writeToLogFile("HTTP static reply error: " + e.getMessage());
+                Log.writeToVerboseLogFile("HTTP static reply error: " + e.getMessage());
             }
         }		
 	}
@@ -239,8 +402,60 @@ public class Simulator {
 	}
 	
 	public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException {
-		setUpStructures();
+		setup();
 		parseCommandLineArguments(args);
 		runSimulation();
+		
+		List<PlayerPoints> playerPointsList = new ArrayList<>();
+		playerPointsList.add(new PlayerPoints(10));
+		playerPointsList.add(new PlayerPoints(23));
+		playerPointsList.add(new PlayerPoints(10));
+		playerPointsList.add(new PlayerPoints(135));
+		playerPointsList.add(new PlayerPoints(10));
+		playerPointsList.add(new PlayerPoints(10));
+		playerPointsList.add(new PlayerPoints(45));
+		
+		Map<Integer, PlayerPoints> map = new HashMap<>();
+		map.put(1, playerPointsList.get(0));
+		map.put(2, playerPointsList.get(1));
+		map.put(3, playerPointsList.get(2));
+		map.put(4, playerPointsList.get(3));
+		map.put(5, playerPointsList.get(4));
+		map.put(6, playerPointsList.get(5));
+		map.put(7, playerPointsList.get(6));
+		
+		Map<Integer, PlayerPoints> result = map.entrySet()
+				  .stream()
+				  .sorted(Map.Entry.comparingByValue())
+				  .collect(Collectors.toMap(
+				    Map.Entry::getKey, 
+				    Map.Entry::getValue,
+				    (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+//		System.out.println(map);
+//		System.out.println(result);
+//		System.out.println(computeRankings(map));
+		
+		playerWrappers.add(null);
+		playerWrappers.add(null);
+		playerWrappers.add(null);
+		playerWrappers.add(null);
+		playerWrappers.add(null);
+		playerWrappers.add(null);
+		playerWrappers.add(null);
+		playerWrappers.add(null);
+		playerWrappers.add(null);
+		playerWrappers.add(null);
+		randomGameGrid = new Integer[10][10];
+		generateRandomGameGrid();
+//		System.out.println();
+//		for(int i = 0; i < randomGameGrid.length; i++) {
+//			for(int j = 0; j < randomGameGrid[i].length; j++)
+//				System.out.print(randomGameGrid[i][j] + " ");
+//			System.out.println();
+//		}
+		
+		List<Game> playerGames = assignGamesToPlayer(playerWrappers.get(0));
+//		for(Game game : playerGames)
+//			System.out.println(game.getScoreAsString());
 	}
 }

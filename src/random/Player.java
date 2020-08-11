@@ -10,9 +10,6 @@ import sim.GameHistory;
 
 public class Player extends sim.Player {
 
-     private int teamID, rounds, seed;
-     private Random random;
-     
      /**
       * Player constructor
       *
@@ -21,13 +18,10 @@ public class Player extends sim.Player {
       * @param seed    random seed
       *
       */
-     public Player(int teamID, int rounds, int seed) {
-          this.teamID = teamID;
-          this.rounds = rounds;
-          this.seed = seed;
-          this.random = new Random(seed);
+     public Player(Integer teamID, Integer rounds, Integer seed) {
+    	 super(teamID, rounds, seed);
      }
-
+     
      /**
       * Reallocate player goals
       *
@@ -38,7 +32,7 @@ public class Player extends sim.Player {
       * @return                  state of player games after reallocation
       *
       */
-     public List<Game> reallocate(int round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap) {
+     public List<Game> reallocate(Integer round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap) {
          
     	 List<Game> reallocatedPlayerGames = new ArrayList<>();
     	 
@@ -57,10 +51,10 @@ public class Player extends sim.Player {
    	 
     	 for(Game winningGame : wonGames) {
     		     		 
-    		 Game randomLostOrDrawnGame = lostOrDrawnGamesWithReallocationCapacity.get(random.nextInt(lostOrDrawnGamesWithReallocationCapacity.size()));
+    		 Game randomLostOrDrawnGame = lostOrDrawnGamesWithReallocationCapacity.get(this.random.nextInt(lostOrDrawnGamesWithReallocationCapacity.size()));
     		 
     		 int halfNumPlayerGoals = winningGame.getHalfNumPlayerGoals();
-    		 int numRandomGoals = (int) Math.min(random.nextInt(halfNumPlayerGoals) + 1, Game.getMaxGoalThreshold() - randomLostOrDrawnGame.getNumPlayerGoals());
+    		 int numRandomGoals = (int) Math.min(this.random.nextInt(halfNumPlayerGoals) + 1, Game.getMaxGoalThreshold() - randomLostOrDrawnGame.getNumPlayerGoals());
     		 
     		 winningGame.setNumPlayerGoals(winningGame.getNumPlayerGoals() - numRandomGoals);
     		 randomLostOrDrawnGame.setNumPlayerGoals(randomLostOrDrawnGame.getNumPlayerGoals() + numRandomGoals);

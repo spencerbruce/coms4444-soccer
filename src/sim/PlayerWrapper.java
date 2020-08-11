@@ -18,9 +18,9 @@ public class PlayerWrapper {
         this.timer = new Timer();
     }
 
-    public List<Game> reallocate(int round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap) {
+    public List<Game> reallocate(Integer round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap) {
 
-    	Log.writeToLogFile("Retrieving reallocated goals from team " + this.playerName + "...");
+    	Log.writeToVerboseLogFile("Retrieving reallocated goals from team " + this.playerName + "...");
         
     	List<Game> reallocatedPlayerGames = new ArrayList<>();
 
@@ -31,8 +31,8 @@ public class PlayerWrapper {
             reallocatedPlayerGames = timer.callWait(timeout);
         }
         catch(Exception e) {
-            Log.writeToLogFile("Team " + this.playerName + " has possibly timed out.");
-            Log.writeToLogFile("Exception for team " + this.playerName + ": " + e);
+            Log.writeToVerboseLogFile("Team " + this.playerName + " has possibly timed out.");
+            Log.writeToVerboseLogFile("Exception for team " + this.playerName + ": " + e);
         }
 
         return reallocatedPlayerGames;

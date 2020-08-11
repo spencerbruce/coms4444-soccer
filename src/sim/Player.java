@@ -3,9 +3,20 @@ package sim;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 
 public abstract class Player {
+
+    public Integer teamID, rounds, seed;
+    public Random random;
+
+	public Player(Integer teamID, Integer rounds, Integer seed) {
+        this.teamID = teamID;
+        this.rounds = rounds;
+        this.seed = seed;
+        this.random = new Random(seed);		
+	}
 	
 	/*
 	 * Check if the following constraints are satisfied:
@@ -70,7 +81,7 @@ public abstract class Player {
 		return true;
 	}
 
-    public abstract List<Game> reallocate(int round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap);
+    public abstract List<Game> reallocate(Integer round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap);
     
     public static boolean hasWonGame(Game game) {
     	return game.getNumPlayerGoals() > game.getNumOpponentGoals();

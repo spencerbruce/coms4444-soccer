@@ -9,6 +9,8 @@ import java.util.Date;
 public class Log {
 
 	private static FileWriter fileWriter;
+	private static boolean isVerbose = false;
+	private static boolean shouldLog = false;
 	
 	public static void setLogFile(String filename) {
 		try {
@@ -17,8 +19,32 @@ public class Log {
 			e.printStackTrace();
 		}
 	}
+
+	public static void assignVerbosityStatus(boolean isVerbose) {
+		Log.isVerbose = isVerbose;
+	}
+
+	public static boolean getVerbosityStatus() {
+		return Log.isVerbose;
+	}
+	
+	public static void assignLoggingStatus(boolean shouldLog) {
+		Log.shouldLog = shouldLog;
+	}
+	
+	public static boolean getLoggingStatus() {
+		return Log.shouldLog;
+	}
+	
+	public static void writeToVerboseLogFile(String content) {
+		if(isVerbose)
+			writeToLogFile(content);
+	}
 	
 	public static void writeToLogFile(String content) {
+		if(!shouldLog)
+			return;
+		
 		DateFormat dateFormat = new SimpleDateFormat("[yyyy/MM/dd HH:mm:ss.SSS] ");
 		Date date = new Date();
 		
