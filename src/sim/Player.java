@@ -11,11 +11,35 @@ public abstract class Player {
     public Integer teamID, rounds, seed;
     public Random random;
 
+    /**
+     * Player constructor
+     *
+     * @param teamID  team ID
+     * @param rounds  number of rounds
+     * @param seed    random seed
+     *
+     */
 	public Player(Integer teamID, Integer rounds, Integer seed) {
         this.teamID = teamID;
         this.rounds = rounds;
         this.seed = seed;
         this.random = new Random(seed);		
+	}
+	
+	public Integer getID() {
+		return teamID;
+	}
+	
+	public Integer getNumRounds() {
+		return rounds;
+	}
+	
+	public Integer getSeed() {
+		return seed;
+	}
+	
+	public Random getRandomGenerator() {
+		return random;
 	}
 	
 	/*
@@ -32,7 +56,7 @@ public abstract class Player {
 	 * @return                        constraints are satisfied
 	 * 
 	 */
-	public boolean checkConstraintsSatisfied(List<Game> originalPlayerGames, List<Game> reallocatedPlayerGames) {
+	public static boolean checkConstraintsSatisfied(List<Game> originalPlayerGames, List<Game> reallocatedPlayerGames) {
 		
 		Map<Integer, Game> originalPlayerGamesMap = new HashMap<>();
 		for(Game originalPlayerGame : originalPlayerGames)

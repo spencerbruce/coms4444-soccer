@@ -37,6 +37,10 @@ public class PlayerWrapper {
 
         return reallocatedPlayerGames;
     }
+    
+    public Player getPlayer() {
+    	return player;
+    }
 
     public String getPlayerName() {
         return playerName;
