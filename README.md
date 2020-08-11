@@ -122,9 +122,9 @@ Additionally, please comment out or remove any print statements you may have inc
 
 > **[-c | --continuous]**: continuous GUI for simulation when GUI is enabled
 
-> **[-d | --discrete]**: discrete/frame-by-frame GUI for simulation when GUI is enalbed
+> **[-d | --discrete]**: discrete/frame-by-frame GUI for simulation when GUI is enabled
 
-> **[-f | --fps]**: speed (frames per second), only for the GUI
+> **[-f | --fps]**: speed (frames per second) of the GUI when GUI is enabled
 
 
 ## Class Design
