@@ -120,6 +120,10 @@ Additionally, please comment out or remove any print statements you may have inc
 
 > **[-g | --gui]**: enable the GUI
 
+> **[-c | --continuous]**: continuous GUI for simulation when GUI is enabled
+
+> **[-d | --discrete]**: discrete/frame-by-frame GUI for simulation when GUI is enalbed
+
 > **[-f | --fps]**: speed (frames per second), only for the GUI
 
 
