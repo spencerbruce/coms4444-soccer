@@ -110,8 +110,6 @@ Additionally, please comment out or remove any print statements you may have inc
 
 > **[-p | --players]**: space-separated players/teams
 
-> **[-t | --simTime]**: specified time for simulation runs
-
 > **[-s | --seed]**: seed value for random player
 
 > **[-l | --log]**: enable logging and specify the log file
