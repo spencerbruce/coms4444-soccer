@@ -42,7 +42,6 @@ You will be creating your own player that extends the simulator's abstract playe
 ```
 package gx; // TODO modify the package name to reflect your team
 
-import java.util.Random;
 import java.util.List;
 import java.util.Map;
 
@@ -51,9 +50,6 @@ import sim.GameHistory;
 
 public class Player extends sim.Player {
 
-     private Integer teamID, rounds, seed;
-     private Random random;
-     
      /**
       * Player constructor
       *
@@ -63,10 +59,7 @@ public class Player extends sim.Player {
       *
       */
      public Player(Integer teamID, Integer rounds, Integer seed) {
-          this.teamID = teamID;
-          this.rounds = rounds;
-          this.seed = seed;
-          this.random = new Random(seed);
+          super(teamID, rounds, seed);
      }
 
      /**
