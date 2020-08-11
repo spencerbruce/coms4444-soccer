@@ -3,7 +3,7 @@
 ## Course Summary
 
 Course: COMS 4444 Programming and Problem Solving (Fall 2020)  
-Website: http://www.cs.columbia.edu/~kar/4444f20
+Website: http://www.cs.columbia.edu/~kar/4444f20  
 University: Columbia University  
 Instructor: Prof. Kenneth Ross  
 TAs: Aditya Sridhar, *<TA 2>*
@@ -51,7 +51,7 @@ import sim.GameHistory;
 
 public class Player extends sim.Player {
 
-     private int teamID, rounds, seed;
+     private Integer teamID, rounds, seed;
      private Random random;
      
      /**
@@ -62,7 +62,7 @@ public class Player extends sim.Player {
       * @param seed    random seed
       *
       */
-     public Player(int teamID, int rounds, int seed) {
+     public Player(Integer teamID, Integer rounds, Integer seed) {
           this.teamID = teamID;
           this.rounds = rounds;
           this.seed = seed;
@@ -79,7 +79,7 @@ public class Player extends sim.Player {
       * @return                  state of player games after reallocation
       *
       */
-     public List<Game> reallocate(int round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap) {
+     public List<Game> reallocate(Integer round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap) {
           // TODO add your code here to reallocate player goals
           
           return null; // TODO modify the return statement to return your list of reallocated player games
@@ -110,17 +110,19 @@ Additionally, please comment out or remove any print statements you may have inc
 
 > **[-p | --players]**: space-separated players/teams
 
-> **[-t | --simTime]**: specified time for simulation runs
-
 > **[-s | --seed]**: seed value for random player
 
-> **[-l | --log]**: enable logging
+> **[-l | --log]**: enable logging and specify the log file
 
 > **[-v | --verbose]**: flag for recording verbose log during games when logging is enabled
 
 > **[-g | --gui]**: enable the GUI
 
-> **[-f | --fps]**: speed (frames per second), only for the GUI
+> **[-c | --continuous]**: continuous GUI for simulation when GUI is enabled
+
+> **[-d | --discrete]**: discrete/frame-by-frame GUI for simulation when GUI is enabled
+
+> **[-f | --fps]**: speed (frames per second) of the GUI when continuous GUI is enabled
 
 
 ## Class Design
