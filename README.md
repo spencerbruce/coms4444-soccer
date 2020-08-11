@@ -114,7 +114,7 @@ Additionally, please comment out or remove any print statements you may have inc
 
 > **[-s | --seed]**: seed value for random player
 
-> **[-l | --log]**: enable logging
+> **[-l | --log]**: enable logging and specify the log file
 
 > **[-v | --verbose]**: flag for recording verbose log during games when logging is enabled
 
