@@ -49,12 +49,18 @@ public class Player extends sim.Player {
     			 lostOrDrawnGamesWithReallocationCapacity.remove(drawnGame);
    	 
     	 for(Game winningGame : wonGames) {
-    		     		 
-    		 Game randomLostOrDrawnGame = lostOrDrawnGamesWithReallocationCapacity.get(this.random.nextInt(lostOrDrawnGamesWithReallocationCapacity.size()));
     		 
+    		 
+    		 if(lostOrDrawnGamesWithReallocationCapacity.size() == 0)
+    			 break;
+
+
+    		 Game randomLostOrDrawnGame = lostOrDrawnGamesWithReallocationCapacity.get(this.random.nextInt(lostOrDrawnGamesWithReallocationCapacity.size()));
+
+
     		 int halfNumPlayerGoals = winningGame.getHalfNumPlayerGoals();
     		 int numRandomGoals = (int) Math.min(this.random.nextInt(halfNumPlayerGoals) + 1, Game.getMaxGoalThreshold() - randomLostOrDrawnGame.getNumPlayerGoals());
-    		 
+
     		 winningGame.setNumPlayerGoals(winningGame.getNumPlayerGoals() - numRandomGoals);
     		 randomLostOrDrawnGame.setNumPlayerGoals(randomLostOrDrawnGame.getNumPlayerGoals() + numRandomGoals);
     		 
@@ -68,7 +74,6 @@ public class Player extends sim.Player {
 
     	 if(checkConstraintsSatisfied(playerGames, reallocatedPlayerGames))
     		 return reallocatedPlayerGames;
-    	 
     	 return playerGames;
      }
      

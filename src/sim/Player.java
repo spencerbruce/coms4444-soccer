@@ -66,27 +66,25 @@ public abstract class Player {
 			reallocatedPlayerGamesMap.put(reallocatedPlayerGame.getID(), reallocatedPlayerGame);
 		
 		int totalNumOriginalPlayerGoals = 0, totalNumReallocatedPlayerGoals = 0;
-		for(Game originalPlayerGame : originalPlayerGames) {
-			
+		for(Game originalPlayerGame : originalPlayerGames) {			
 			if(!reallocatedPlayerGamesMap.containsKey(originalPlayerGame.getID()))
 				continue;
-
 			Game reallocatedPlayerGame = reallocatedPlayerGamesMap.get(originalPlayerGame.getID());
 			boolean isOriginalWinningGame = originalPlayerGame.getNumPlayerGoals() > originalPlayerGame.getNumOpponentGoals();
 			
 			// Constraint 1
 			if(reallocatedPlayerGame.getNumPlayerGoals() < 0 || reallocatedPlayerGame.getNumPlayerGoals() > 8)
 				return false;
-			
+
 			// Constraint 2
-			if(originalPlayerGame.getNumOpponentGoals() != reallocatedPlayerGame.getNumOpponentGoals())
+			if(!originalPlayerGame.getNumOpponentGoals().equals(reallocatedPlayerGame.getNumOpponentGoals()))
 				return false;
-			
+		
 			// Constraint 3
 			boolean numPlayerGoalsIncreased = reallocatedPlayerGame.getNumPlayerGoals() > originalPlayerGame.getNumPlayerGoals();
 			if(isOriginalWinningGame && numPlayerGoalsIncreased)
 				return false;
-			
+
 			// Constraint 4
 			int halfNumPlayerGoals = originalPlayerGame.getHalfNumPlayerGoals();
 			boolean numReallocatedPlayerGoalsLessThanHalf = 
@@ -101,7 +99,7 @@ public abstract class Player {
 		// Constraint 5
 		if(totalNumOriginalPlayerGoals != totalNumReallocatedPlayerGoals)
 			return false;
-		
+			
 		return true;
 	}
 
@@ -116,6 +114,6 @@ public abstract class Player {
     }
     
     public static boolean hasDrawnGame(Game game) {
-    	return game.getNumPlayerGoals() == game.getNumOpponentGoals();    	
+    	return game.getNumPlayerGoals().equals(game.getNumOpponentGoals());    	
     }
 }

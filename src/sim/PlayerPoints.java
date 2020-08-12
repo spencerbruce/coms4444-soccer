@@ -66,7 +66,7 @@ public class PlayerPoints implements Comparable<PlayerPoints>, Serializable {
 
 	@Override
 	public String toString() {
-		return "Team points: " + numPoints;
+		return Integer.toString(numPoints);
 	}
 	
 	@Override

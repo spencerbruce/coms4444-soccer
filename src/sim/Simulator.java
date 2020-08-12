@@ -18,7 +18,7 @@ public class Simulator {
     private static Random random;
 	
 	// Constants
-	private static int seed = 42;
+	private static int seed = 10;
 	private static int rounds = 10;
 	private static double fps = 30;
 	
@@ -110,7 +110,6 @@ public class Simulator {
 
 	private static void runSimulation() {
 		for(int i = 0; i <= rounds; i++) {
-			System.out.println("Round: " + i);
 			currentRound = i;
 			Map<Integer, List<Game>> roundGamesMap = new HashMap<>();
 			
@@ -140,11 +139,36 @@ public class Simulator {
 					
 					List<Game> reallocatedPlayerGames = 
 							playerWrapper.reallocate(currentRound, deepClone(gameHistory), deepClone(playerGames), deepClone(opponentGamesMap));
-
-					if(!Player.checkConstraintsSatisfied(playerGames, reallocatedPlayerGames))
+					
+					List<Game> newReallocatedPlayerGames = new ArrayList<>();
+					for(Game playerGame : playerGames) {
+						boolean reallocationOccurred = false;
+						for(Game reallocatedPlayerGame : reallocatedPlayerGames)
+							if(playerGame.getID().equals(reallocatedPlayerGame.getID())) {
+								newReallocatedPlayerGames.add(reallocatedPlayerGame);
+								reallocationOccurred = true;
+								break;
+							}
+						
+						if(!reallocationOccurred)
+							newReallocatedPlayerGames.add(playerGame);
+					}
+					
+					if(!Player.checkConstraintsSatisfied(playerGames, newReallocatedPlayerGames))
 						roundGamesMap.put(playerTeamID, deepClone(playerGames));
 					else
-						roundGamesMap.put(playerTeamID, deepClone(reallocatedPlayerGames));
+						roundGamesMap.put(playerTeamID, deepClone(newReallocatedPlayerGames));
+				}
+				
+				for(Integer playerTeamID : roundGamesMap.keySet()) {
+					List<Game> playerGames = roundGamesMap.get(playerTeamID);
+					for(Game playerGame : playerGames)
+						for(Game opponentGame : roundGamesMap.get(playerGame.getID())) {
+							if(playerTeamID.equals(opponentGame.getID())) {
+								opponentGame.setNumOpponentGoals(playerGame.getNumPlayerGoals());
+								break;
+							}
+						}
 				}
 				
 				Map<Integer, PlayerPoints> roundPointsMap = computeTeamPoints(roundGamesMap);
@@ -179,8 +203,8 @@ public class Simulator {
 		Map<Integer, Map<Integer, PlayerPoints>> allCumulativePointsMap = gameHistory.getAllCumulativePointsMap();
 		for(Map.Entry<Integer, PlayerPoints> newPointsEntry : roundPointsMap.entrySet()) {
 			int roundCumulativePoints = newPointsEntry.getValue().getTotalPoints();
-			for(Integer round : allCumulativePointsMap.keySet())
-				roundCumulativePoints += allCumulativePointsMap.get(round).get(newPointsEntry.getKey()).getTotalPoints();
+			int mapSize = allCumulativePointsMap.size();
+			roundCumulativePoints += mapSize == 0 ? 0 : allCumulativePointsMap.get(mapSize).get(newPointsEntry.getKey()).getTotalPoints();
 			roundCumulativePointsMap.put(newPointsEntry.getKey(), new PlayerPoints(roundCumulativePoints));
 		}
 		
@@ -436,7 +460,31 @@ public class Simulator {
 		setup();
 		parseCommandLineArguments(args);
 		runSimulation();
-		System.out.println(gameHistory);
+		
+//		for(int i = 0; i < randomGameGrid.length; i++) {
+//			for(int j = 0; j < randomGameGrid[i].length; j++) {
+//				System.out.print(randomGameGrid[i][j] + " ");
+//			}
+//			System.out.println();
+//		}
+//		System.out.println();
+		for(int i = 0; i <= rounds; i++) {
+			System.out.println("Round " + i + ": ");
+			for(int teamID : gameHistory.getAllGamesMap().get(i).keySet()) {
+				List<Game> games = gameHistory.getAllGamesMap().get(i).get(teamID);
+				System.out.println("\tTeam " + teamID + ":");
+				System.out.println("\t\tGames:");
+				for(Game game : games) {
+					System.out.println("\t\t\tGame " + game.getID() + ": " + game.getScoreAsString());
+				}
+				if(i != 0) {
+					System.out.println("\t\tPoints: " + gameHistory.getAllRoundPointsMap().get(i).get(teamID));
+					System.out.println("\t\tCumulative points: " + gameHistory.getAllCumulativePointsMap().get(i).get(teamID));
+					System.out.println("\t\tRound ranking: " + gameHistory.getAllRoundRankingsMap().get(i).get(teamID));
+					System.out.println("\t\tAverage ranking: " + gameHistory.getAllAverageRankingsMap().get(i).get(teamID));
+				}
+			}
+		}
 		
 //		List<PlayerPoints> playerPointsList = new ArrayList<>();
 //		playerPointsList.add(new PlayerPoints(10));
