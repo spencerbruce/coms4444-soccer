@@ -80,6 +80,8 @@ public class Player extends sim.Player {
 }
 ```
 
+When reallocating games, please make sure to preserve the game IDs (indicated by the `gameID` field in `Game`), even if you create new `Game` instances. The game IDs are used to verify whether or not the reallocation constraints have been satisfied. If you do not preserve the game IDs while returning the list of reallocated games, your player may not have the intended behavior during the simulation.
+
 ## Submission
 You will be submitting your created team folder, which includes the implemented `Player` class and any other helper classes you create. We ask that you please do not modify any code in the `sim` or `random` directories, especially the simulator, when you submit your code. This makes it easier for us to merge in your code.
 
