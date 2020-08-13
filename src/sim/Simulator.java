@@ -208,8 +208,8 @@ public class Simulator {
 				Map<Integer, Double> roundAverageRankingsMap = computeRankings(roundCumulativePointsMap);
 				updateGameHistory(currentRound, roundGamesMap, roundPointsMap, roundCumulativePointsMap, roundRankingsMap, roundAverageRankingsMap);	
 
-		        Log.writeToVerboseLogFile("---------------------------------------------------------Round " + currentRound + " Results----------------------------------------------------------------");
-		        Log.writeToVerboseLogFile("Team\t\tRound Rank\tAverage Rank\tRound Points\tCumulative Points\tMatches\tWins\tLosses\tDraws");
+				Log.writeToVerboseLogFile("---------------------------------------------------------Round " + currentRound + " Results----------------------------------------------------------------");
+				Log.writeToVerboseLogFile("Team\t\tRound Rank\tAverage Rank\tRound Points\tCumulative Points\tMatches\tWins\tLosses\tDraws");
 
 		        
 				Map<Integer, Double> orderedRoundRankingsMap = gameHistory.getAllRoundRankingsMap().get(currentRound).entrySet()
@@ -253,8 +253,8 @@ public class Simulator {
 		}
 		
 		Log.writeToLogFile("All rounds and reallocations have completed!\n\n");
-        Log.writeToLogFile("-------------------------------------------------------------Overall Results-------------------------------------------------------------");
-        Log.writeToLogFile("Team\t\tFinal Rank\tTotal Points\tMatches\tWins\tLosses\tDraws\tGoals For\tGoals Against\tGoal Difference");
+		Log.writeToLogFile("-------------------------------------------------------------Overall Results-------------------------------------------------------------");
+		Log.writeToLogFile("Team\t\tFinal Rank\tTotal Points\tMatches\tWins\tLosses\tDraws\tGoals For\tGoals Against\tGoal Difference");
 
         
 		Map<Integer, Double> finalRankingsMap = gameHistory.getAllAverageRankingsMap().get(rounds).entrySet()
@@ -397,16 +397,16 @@ public class Simulator {
 	}
 	
 	private static String cleanName(String playerName) {
-       String cleanedPlayerName = " ";
-       if(playerName.contains("_")) {
-           Integer index = playerName.lastIndexOf("_");
-           cleanedPlayerName = playerName.substring(0, index);
-       }
-       else
-           return playerName;
+		String cleanedPlayerName = " ";
+		if(playerName.contains("_")) {
+			Integer index = playerName.lastIndexOf("_");
+			cleanedPlayerName = playerName.substring(0, index);
+		}
+		else
+			return playerName;
 
-       return cleanedPlayerName;
-    }
+		return cleanedPlayerName;
+	}
 	
 	private static void generateRandomGameGrid() {
 		randomGameGrid = new Integer[playerWrappers.size()][playerWrappers.size()];
