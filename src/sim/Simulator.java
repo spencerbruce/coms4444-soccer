@@ -2,6 +2,7 @@ package sim;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -204,8 +205,8 @@ public class Simulator {
 				
 				Map<Integer, PlayerPoints> roundPointsMap = computeTeamPoints(roundGamesMap);
 				Map<Integer, PlayerPoints> roundCumulativePointsMap = computeCumulativeTeamPoints(roundPointsMap);
-				Map<Integer, Double> roundRankingsMap = computeRankings(roundPointsMap);
-				Map<Integer, Double> roundAverageRankingsMap = computeRankings(roundCumulativePointsMap);
+				Map<Integer, Double> roundRankingsMap = computeRoundRankings(roundPointsMap);
+				Map<Integer, Double> roundAverageRankingsMap = computeAverageRankings(roundRankingsMap);
 				updateGameHistory(currentRound, roundGamesMap, roundPointsMap, roundCumulativePointsMap, roundRankingsMap, roundAverageRankingsMap);	
 
 				Log.writeToVerboseLogFile("---------------------------------------------------------Round " + currentRound + " Results----------------------------------------------------------------");
@@ -220,6 +221,7 @@ public class Simulator {
 						    Map.Entry::getValue,
 						    (oldRank, newRank) -> oldRank, LinkedHashMap::new));
 				
+				DecimalFormat rankFormat = new DecimalFormat("###.####");
 				for(Integer teamID : orderedRoundRankingsMap.keySet()) {
 					int numWins = 0, numLosses = 0, numDraws = 0;
 					for(Game game : roundGamesMap.get(teamID)) {
@@ -234,8 +236,8 @@ public class Simulator {
 					for(PlayerWrapper playerWrapper : playerWrappers) {
 						if(playerWrapper.getPlayer().getID().equals(teamID)) {
 							Log.writeToVerboseLogFile(playerWrapper.getPlayerName() + "\t" + 
-											   orderedRoundRankingsMap.get(teamID) + "\t\t" +
-											   roundAverageRankingsMap.get(teamID) + "\t\t" +
+											   rankFormat.format(orderedRoundRankingsMap.get(teamID)) + "\t\t" +
+											   rankFormat.format(roundAverageRankingsMap.get(teamID)) + "\t\t" +
 											   roundPointsMap.get(teamID) + "\t\t" +
 											   roundCumulativePointsMap.get(teamID) + "\t\t\t" +
 											   (numWins + numLosses + numDraws) + "\t" +
@@ -267,6 +269,7 @@ public class Simulator {
 		Map<Integer, PlayerPoints> finalCumulativePointsMap = gameHistory.getAllCumulativePointsMap().get(rounds);
 		Map<Integer, Map<Integer, List<Game>>> allGamesMap = gameHistory.getAllGamesMap();
 		
+		DecimalFormat rankFormat = new DecimalFormat("###.####");
 		for(Integer teamID : finalRankingsMap.keySet()) {
 			int numWins = 0, numLosses = 0, numDraws = 0, numGoalsFor = 0, numGoalsAgainst = 0;
 			for(int round = 1; round <= rounds; round++) {
@@ -286,7 +289,7 @@ public class Simulator {
 			for(PlayerWrapper playerWrapper : playerWrappers) {
 				if(playerWrapper.getPlayer().getID().equals(teamID)) {
 					Log.writeToLogFile(playerWrapper.getPlayerName() + "\t" + 
-									   finalRankingsMap.get(teamID) + "\t\t" +
+									   rankFormat.format(finalRankingsMap.get(teamID)) + "\t\t" +
 									   finalCumulativePointsMap.get(teamID) + "\t\t" +
 									   (numWins + numLosses + numDraws) + "\t" +
 									   numWins + "\t" +
@@ -337,10 +340,10 @@ public class Simulator {
 		return roundCumulativePointsMap;
 	}
 	
-	private static Map<Integer, Double> computeRankings(Map<Integer, PlayerPoints> pointsMap) {
+	private static Map<Integer, Double> computeRoundRankings(Map<Integer, PlayerPoints> roundPointsMap) {
 		Map<Integer, Double> rankingsMap = new HashMap<>();
 		
-		Map<Integer, PlayerPoints> rankedPointsMap = pointsMap.entrySet()
+		Map<Integer, PlayerPoints> rankedPointsMap = roundPointsMap.entrySet()
 				  .stream()
 				  .sorted(Map.Entry.comparingByValue())
 				  .collect(Collectors.toMap(
@@ -383,6 +386,21 @@ public class Simulator {
 		return rankingsMap;
 	}	
 
+	private static Map<Integer, Double> computeAverageRankings(Map<Integer, Double> roundPointsMap) {
+		Map<Integer, Double> averageRankingsMap = new HashMap<>();
+		
+		Map<Integer, Map<Integer, Double>> allAverageRankingsMap = gameHistory.getAllAverageRankingsMap();
+		for(int teamID : roundPointsMap.keySet()) {
+			double rankSum = roundPointsMap.get(teamID);
+			for(int round : allAverageRankingsMap.keySet())
+				rankSum += allAverageRankingsMap.get(round).get(teamID);
+			double rankAverage = rankSum / (allAverageRankingsMap.size() + 1);
+			averageRankingsMap.put(teamID, rankAverage);
+		}
+		
+		return averageRankingsMap;
+	}
+
 	private static void updateGameHistory(Integer round,
 										  Map<Integer, List<Game>> roundGamesMap,
 										  Map<Integer, PlayerPoints> roundPointsMap,
@@ -409,14 +427,22 @@ public class Simulator {
 	}
 	
 	private static void generateRandomGameGrid() {
+		List<Integer> goalPossibilities = new ArrayList<>();
 		randomGameGrid = new Integer[playerWrappers.size()][playerWrappers.size()];
-		for(int i = 0; i < randomGameGrid.length; i++)
+		for(int i = 0; i < randomGameGrid.length; i++) {
+			for(int j = 0; j <= Math.max(playerWrappers.size() - 2, Game.getMaxGoalThreshold()); j++)
+				goalPossibilities.add(j);
 			for(int j = 0; j < randomGameGrid[i].length; j++) {
 				if(i == j)
 					randomGameGrid[i][j] = 0;
-				else
-					randomGameGrid[i][j] = random.nextInt(8) + 1;
+				else {
+					int index = random.nextInt(goalPossibilities.size());
+					randomGameGrid[i][j] = goalPossibilities.get(index);
+					goalPossibilities.remove(index);
+				}
 			}
+			goalPossibilities.clear();
+		}		
 	}
 	
 	private static List<Game> assignGamesToPlayer(PlayerWrapper playerWrapper) {
