@@ -15,18 +15,18 @@ public class Simulator {
 	private static List<PlayerWrapper> playerWrappers;
 	private static List<String> playerNames, playerNamesWithDuplicates;
 	private static Integer[][] randomGameGrid;
-    private static Random random;
+	private static Random random;
 	
 	// Constants
 	private static int seed = 10;
 	private static int rounds = 10;
 	private static double fps = 30;
 	
-    private static int currentRound = 0;
-    private static long timeout = 1000;
-    private static boolean showGUI = false;
-    private static boolean continuousGUI = true;
-    private static String version = "1.0";
+	private static int currentRound = 0;
+	private static long timeout = 1000;
+	private static boolean showGUI = false;
+	private static boolean continuousGUI = true;
+	private static String version = "1.0";
 	private static String projectPath, sourcePath, staticsPath;
     	
 	
@@ -418,7 +418,6 @@ public class Simulator {
 					randomGameGrid[i][j] = random.nextInt(8) + 1;
 			}
 	}
-	
 	
 	private static List<Game> assignGamesToPlayer(PlayerWrapper playerWrapper) {
 		List<Game> playerGames = new ArrayList<>();
