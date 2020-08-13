@@ -13,7 +13,7 @@ public class Simulator {
 	
 	private static GameHistory gameHistory;
 	private static List<PlayerWrapper> playerWrappers;
-	private static List<String> playerNames;
+	private static List<String> playerNames, playerNamesWithDuplicates;
 	private static Integer[][] randomGameGrid;
     private static Random random;
 	
@@ -42,6 +42,8 @@ public class Simulator {
 	private static void parseCommandLineArguments(String[] args) {
 		playerWrappers = new ArrayList<>();
 		playerNames = new ArrayList<>();
+		playerNamesWithDuplicates = new ArrayList<>();
+		Map<String, Integer> playerNameMap = new HashMap<>();
 
 		for(int i = 0; i < args.length; i++) {
             switch (args[i].charAt(0)) {
@@ -50,15 +52,13 @@ public class Simulator {
                         while(i + 1 < args.length && args[i + 1].charAt(0) != '-') {
                             i++;
                             String playerName = args[i];
-                            playerNames.add(playerName);
-                            try {
-								playerWrappers.add(loadPlayerWrapper(cleanName(playerName), playerName));
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
+                            playerNamesWithDuplicates.add(playerName);
+                            if(!playerNameMap.containsKey(playerName))
+                            	playerNameMap.put(playerName, 0);
+                            playerNameMap.put(playerName, playerNameMap.get(playerName) + 1);
                         }
 
-                        if(playerNames.size() < 2) 
+                        if(playerNamesWithDuplicates.size() < 2)
                             throw new IllegalArgumentException("You entered an invalid number of teams. At least 2 teams are required for the league.");
                     } 
                     else if(args[i].equals("-g") || args[i].equals("--gui"))
@@ -102,10 +102,37 @@ public class Simulator {
             }
         }
 
+		for(String name : playerNameMap.keySet()) {
+			int numTeams = playerNameMap.get(name);
+			if(numTeams == 1) {
+				playerNames.add(name);
+                try {
+					playerWrappers.add(loadPlayerWrapper(cleanName(name), name));
+				} catch (Exception e) {
+					Log.writeToLogFile("Unable to load players: " + e.getMessage());
+				}
+			}
+			else {
+				Log.writeToLogFile(numTeams + " teams have the name \"" + name + "\"!");
+				for(int i = 1; i <= numTeams; i++) {
+					String newName = name + "_" + i;
+					playerNames.add(newName);
+                    try {
+						playerWrappers.add(loadPlayerWrapper(cleanName(newName), newName));
+					} catch (Exception e) {
+						Log.writeToLogFile("Unable to load player: " + e.getMessage());
+					}
+					Log.writeToLogFile("Team \"" + name + "\" at index " + i + " is being renamed as \"" + newName + "\"!");
+				}
+			}			
+		}
+		
+		Log.writeToLogFile("\n");
         Log.writeToLogFile("Project: Retroactive Soccer");
         Log.writeToLogFile("Simulator Version: " + version);
         Log.writeToLogFile("Players: " + playerNames.toString());
         Log.writeToLogFile("GUI: " + (showGUI ? "enabled" : "disabled"));
+        Log.writeToLogFile("\n");
 	}
 
 	private static void runSimulation() {
@@ -158,8 +185,12 @@ public class Simulator {
 						roundGamesMap.put(playerTeamID, deepClone(playerGames));
 					else
 						roundGamesMap.put(playerTeamID, deepClone(newReallocatedPlayerGames));
+					
+					// Reset team ID, in case it was modified during reallocation
+					playerWrapper.getPlayer().teamID = (Integer) playerTeamID;
 				}
 				
+				// Update teams' reallocated games with opponents' reallocations
 				for(Integer playerTeamID : roundGamesMap.keySet()) {
 					List<Game> playerGames = roundGamesMap.get(playerTeamID);
 					for(Game playerGame : playerGames)
@@ -178,6 +209,57 @@ public class Simulator {
 				updateGameHistory(currentRound, roundGamesMap, roundPointsMap, roundCumulativePointsMap, roundRankingsMap, roundAverageRankingsMap);	
 			}
 		}
+		
+		Log.writeToLogFile("All rounds and reallocations have completed!\n\n");
+        Log.writeToLogFile("-------------------------------------------------------------Summary of Results------------------------------------------------------------");
+        Log.writeToLogFile("Team\t\tFinal Rank\tTotal Points\tMatches\tWins\tLosses\tDraws\tGoals For\tGoals Against\tGoal Difference");
+
+        
+		Map<Integer, Double> finalRankingsMap = gameHistory.getAllAverageRankingsMap().get(rounds).entrySet()
+				  .stream()
+				  .sorted(Map.Entry.comparingByValue())
+				  .collect(Collectors.toMap(
+				    Map.Entry::getKey, 
+				    Map.Entry::getValue,
+				    (oldRank, newRank) -> oldRank, LinkedHashMap::new));
+		Map<Integer, PlayerPoints> finalCumulativePointsMap = gameHistory.getAllCumulativePointsMap().get(rounds);
+		Map<Integer, Map<Integer, List<Game>>> allGamesMap = gameHistory.getAllGamesMap();
+		
+		for(Integer teamID : finalRankingsMap.keySet()) {
+			int numWins = 0, numLosses = 0, numDraws = 0, numGoalsFor = 0, numGoalsAgainst = 0;
+			for(int round = 1; round <= rounds; round++) {
+				for(Game game : allGamesMap.get(round).get(teamID)) {
+					if(Player.hasWonGame(game))
+						numWins++;
+					else if(Player.hasLostGame(game))
+						numLosses++;
+					else if(Player.hasDrawnGame(game))
+						numDraws++;
+					
+					numGoalsFor += game.getNumPlayerGoals();
+					numGoalsAgainst += game.getNumOpponentGoals();
+				}
+			}
+			
+			for(PlayerWrapper playerWrapper : playerWrappers) {
+				if(playerWrapper.getPlayer().getID().equals(teamID)) {
+					Log.writeToLogFile(playerWrapper.getPlayerName() + "\t" + 
+									   finalRankingsMap.get(teamID) + "\t\t" +
+									   finalCumulativePointsMap.get(teamID) + "\t\t" +
+									   (numWins + numLosses + numDraws) + "\t" +
+									   numWins + "\t" +
+									   numLosses + "\t" + 
+									   numDraws + "\t" +
+									   numGoalsFor + "\t\t" +
+									   numGoalsAgainst + "\t\t" +
+									   (numGoalsFor - numGoalsAgainst)
+					);
+					break;
+				}
+			}
+		}
+
+		Log.writeToLogFile("----------------------------------------------------------------End of Log-----------------------------------------------------------------");
 	}
 
 	private static Map<Integer, PlayerPoints> computeTeamPoints(Map<Integer, List<Game>> roundGamesMap) {
@@ -332,12 +414,12 @@ public class Simulator {
 	}
 	
 	private static PlayerWrapper loadPlayerWrapper(String playerName, String modifiedPlayerName) throws Exception {
-		Log.writeToLogFile("Loading player " + playerName + "...");
+		Log.writeToLogFile("Loading team " + playerName + "...");
 
 		int teamID = playerWrappers.size() + 1;
 		Player player = loadPlayer(playerName, teamID);
         if(player == null) {
-            Log.writeToLogFile("Cannot load player " + playerName + "!");
+            Log.writeToLogFile("Cannot load team " + playerName + "!");
             System.exit(1);
         }
 
@@ -460,82 +542,5 @@ public class Simulator {
 		setup();
 		parseCommandLineArguments(args);
 		runSimulation();
-		
-//		for(int i = 0; i < randomGameGrid.length; i++) {
-//			for(int j = 0; j < randomGameGrid[i].length; j++) {
-//				System.out.print(randomGameGrid[i][j] + " ");
-//			}
-//			System.out.println();
-//		}
-//		System.out.println();
-		for(int i = 0; i <= rounds; i++) {
-			System.out.println("Round " + i + ": ");
-			for(int teamID : gameHistory.getAllGamesMap().get(i).keySet()) {
-				List<Game> games = gameHistory.getAllGamesMap().get(i).get(teamID);
-				System.out.println("\tTeam " + teamID + ":");
-				System.out.println("\t\tGames:");
-				for(Game game : games) {
-					System.out.println("\t\t\tGame " + game.getID() + ": " + game.getScoreAsString());
-				}
-				if(i != 0) {
-					System.out.println("\t\tPoints: " + gameHistory.getAllRoundPointsMap().get(i).get(teamID));
-					System.out.println("\t\tCumulative points: " + gameHistory.getAllCumulativePointsMap().get(i).get(teamID));
-					System.out.println("\t\tRound ranking: " + gameHistory.getAllRoundRankingsMap().get(i).get(teamID));
-					System.out.println("\t\tAverage ranking: " + gameHistory.getAllAverageRankingsMap().get(i).get(teamID));
-				}
-			}
-		}
-		
-//		List<PlayerPoints> playerPointsList = new ArrayList<>();
-//		playerPointsList.add(new PlayerPoints(10));
-//		playerPointsList.add(new PlayerPoints(23));
-//		playerPointsList.add(new PlayerPoints(10));
-//		playerPointsList.add(new PlayerPoints(135));
-//		playerPointsList.add(new PlayerPoints(10));
-//		playerPointsList.add(new PlayerPoints(10));
-//		playerPointsList.add(new PlayerPoints(45));
-//		
-//		Map<Integer, PlayerPoints> map = new HashMap<>();
-//		map.put(1, playerPointsList.get(0));
-//		map.put(2, playerPointsList.get(1));
-//		map.put(3, playerPointsList.get(2));
-//		map.put(4, playerPointsList.get(3));
-//		map.put(5, playerPointsList.get(4));
-//		map.put(6, playerPointsList.get(5));
-//		map.put(7, playerPointsList.get(6));
-		
-//		Map<Integer, PlayerPoints> result = map.entrySet()
-//				  .stream()
-//				  .sorted(Map.Entry.comparingByValue())
-//				  .collect(Collectors.toMap(
-//				    Map.Entry::getKey, 
-//				    Map.Entry::getValue,
-//				    (oldValue, newValue) -> oldValue, LinkedHashMap::new));
-//		System.out.println(map);
-//		System.out.println(result);
-//		System.out.println(computeRankings(map));
-		
-//		playerWrappers.add(null);
-//		playerWrappers.add(null);
-//		playerWrappers.add(null);
-//		playerWrappers.add(null);
-//		playerWrappers.add(null);
-//		playerWrappers.add(null);
-//		playerWrappers.add(null);
-//		playerWrappers.add(null);
-//		playerWrappers.add(null);
-//		playerWrappers.add(null);
-//		randomGameGrid = new Integer[10][10];
-//		generateRandomGameGrid();
-//		System.out.println();
-//		for(int i = 0; i < randomGameGrid.length; i++) {
-//			for(int j = 0; j < randomGameGrid[i].length; j++)
-//				System.out.print(randomGameGrid[i][j] + " ");
-//			System.out.println();
-//		}
-		
-//		List<Game> playerGames = assignGamesToPlayer(playerWrappers.get(0));
-//		for(Game game : playerGames)
-//			System.out.println(game.getScoreAsString());
 	}
 }

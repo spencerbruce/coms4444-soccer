@@ -20,7 +20,7 @@ public class PlayerWrapper {
 
     public List<Game> reallocate(Integer round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap) {
 
-    	Log.writeToVerboseLogFile("Retrieving reallocated goals from team " + this.playerName + "...");
+    	Log.writeToVerboseLogFile("Retrieving reallocated goals from team " + this.playerName + " in round " + round + "...");
         
     	List<Game> reallocatedPlayerGames = new ArrayList<>();
 
