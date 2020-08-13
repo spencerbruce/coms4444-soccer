@@ -207,11 +207,53 @@ public class Simulator {
 				Map<Integer, Double> roundRankingsMap = computeRankings(roundPointsMap);
 				Map<Integer, Double> roundAverageRankingsMap = computeRankings(roundCumulativePointsMap);
 				updateGameHistory(currentRound, roundGamesMap, roundPointsMap, roundCumulativePointsMap, roundRankingsMap, roundAverageRankingsMap);	
+
+		        Log.writeToVerboseLogFile("---------------------------------------------------------Round " + currentRound + " Results----------------------------------------------------------------");
+		        Log.writeToVerboseLogFile("Team\t\tRound Rank\tAverage Rank\tRound Points\tCumulative Points\tMatches\tWins\tLosses\tDraws");
+
+		        
+				Map<Integer, Double> orderedRoundRankingsMap = gameHistory.getAllRoundRankingsMap().get(currentRound).entrySet()
+						  .stream()
+						  .sorted(Map.Entry.comparingByValue())
+						  .collect(Collectors.toMap(
+						    Map.Entry::getKey, 
+						    Map.Entry::getValue,
+						    (oldRank, newRank) -> oldRank, LinkedHashMap::new));
+				
+				for(Integer teamID : orderedRoundRankingsMap.keySet()) {
+					int numWins = 0, numLosses = 0, numDraws = 0;
+					for(Game game : roundGamesMap.get(teamID)) {
+						if(Player.hasWonGame(game))
+							numWins++;
+						else if(Player.hasLostGame(game))
+							numLosses++;
+						else if(Player.hasDrawnGame(game))
+							numDraws++;						
+					}
+					
+					for(PlayerWrapper playerWrapper : playerWrappers) {
+						if(playerWrapper.getPlayer().getID().equals(teamID)) {
+							Log.writeToVerboseLogFile(playerWrapper.getPlayerName() + "\t" + 
+											   orderedRoundRankingsMap.get(teamID) + "\t\t" +
+											   roundAverageRankingsMap.get(teamID) + "\t\t" +
+											   roundPointsMap.get(teamID) + "\t\t" +
+											   roundCumulativePointsMap.get(teamID) + "\t\t\t" +
+											   (numWins + numLosses + numDraws) + "\t" +
+											   numWins + "\t" +
+											   numLosses + "\t" + 
+											   numDraws + "\t"
+							);
+							break;
+						}
+					}
+				}
+
+				Log.writeToVerboseLogFile("---------------------------------------------------------End of Round " + currentRound + "-----------------------------------------------------------------");			
 			}
 		}
 		
 		Log.writeToLogFile("All rounds and reallocations have completed!\n\n");
-        Log.writeToLogFile("-------------------------------------------------------------Summary of Results------------------------------------------------------------");
+        Log.writeToLogFile("-------------------------------------------------------------Overall Results-------------------------------------------------------------");
         Log.writeToLogFile("Team\t\tFinal Rank\tTotal Points\tMatches\tWins\tLosses\tDraws\tGoals For\tGoals Against\tGoal Difference");
 
         
@@ -259,7 +301,9 @@ public class Simulator {
 			}
 		}
 
-		Log.writeToLogFile("----------------------------------------------------------------End of Log-----------------------------------------------------------------");
+		Log.writeToLogFile("----------------------------------------------------------------End of Log---------------------------------------------------------------");
+		Log.closeLogFile();
+		System.exit(1);
 	}
 
 	private static Map<Integer, PlayerPoints> computeTeamPoints(Map<Integer, List<Game>> roundGamesMap) {

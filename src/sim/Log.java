@@ -14,7 +14,7 @@ public class Log {
 	
 	public static void setLogFile(String filename) {
 		try {
-			fileWriter = new FileWriter(filename, true);
+			fileWriter = new FileWriter(filename, false);
 		} catch(IOException e) {
 			e.printStackTrace();
 		}
