@@ -1,3 +1,12 @@
+/*
+    Project: Retroactive Soccer
+    Course: COMS 4444 Programming & Problem Solving (Fall 2020)
+    Instructor: Prof. Kenneth Ross
+    URL: http://www.cs.columbia.edu/~kar/4444f20
+    Author: Aditya Sridhar
+    Simulator Version: 1.0
+*/
+
 package sim;
 
 import java.io.*;
@@ -27,10 +36,11 @@ public class Simulator {
 	private static long timeout = 1000;
 	private static boolean showGUI = false;
 	private static boolean continuousGUI = true;
+	private static boolean exportCSV = false;
 	private static String version = "1.0";
-	private static String projectPath, sourcePath, staticsPath;
-    	
-	
+	private static String projectPath, sourcePath, staticsPath, csvPath;
+    
+
 	private static void setup() {
 		gameHistory = new GameHistory();
 		random = new Random(seed);		
@@ -71,9 +81,16 @@ public class Simulator {
                     else if(args[i].equals("-l") || args[i].equals("--log")) {
                         i++;
                     	if(i == args.length) 
-                            throw new IllegalArgumentException("The log file name is missing!");
+                            throw new IllegalArgumentException("The log file path is missing!");
                         Log.setLogFile(args[i]);
                         Log.assignLoggingStatus(true);
+                    }
+                    else if(args[i].equals("-e") || args[i].equals("--export")) {
+                        i++;
+                    	if(i == args.length) 
+                            throw new IllegalArgumentException("The CSV file path is missing!");
+                    	exportCSV = true;
+                    	csvPath = args[i];
                     }
                     else if(args[i].equals("-v") || args[i].equals("--verbose"))
                         Log.assignVerbosityStatus(true);
@@ -136,7 +153,7 @@ public class Simulator {
         Log.writeToLogFile("\n");
 	}
 
-	private static void runSimulation() {
+	private static void runSimulation() throws IOException {
 		for(int i = 0; i <= rounds; i++) {
 			currentRound = i;
 			Map<Integer, List<Game>> roundGamesMap = new HashMap<>();
@@ -306,6 +323,51 @@ public class Simulator {
 
 		Log.writeToLogFile("----------------------------------------------------------------End of Log---------------------------------------------------------------");
 		Log.closeLogFile();
+				
+		if(exportCSV) {
+			List<List<String>> rows = new ArrayList<>();
+			for(int round : allGamesMap.keySet()) {
+				if(round == 0)
+					continue;
+				for(int teamID : allGamesMap.get(round).keySet()) {
+					for(Game game : allGamesMap.get(round).get(teamID)) {
+						int opponentID = game.getID();
+						int goalsFor = game.getNumPlayerGoals();
+						int goalsAgainst = game.getNumOpponentGoals();
+						int goalDifference = goalsFor - goalsAgainst;
+						int pointsFor, pointsAgainst;
+						if(Player.hasWonGame(game)) {
+							pointsFor = PlayerPoints.getWinPointValue();
+							pointsAgainst = PlayerPoints.getLossPointValue();
+						}
+						else if(Player.hasLostGame(game)) {
+							pointsFor = PlayerPoints.getLossPointValue();
+							pointsAgainst = PlayerPoints.getWinPointValue();
+						}
+						else {
+							pointsFor = PlayerPoints.getDrawPointValue();
+							pointsAgainst = PlayerPoints.getDrawPointValue();							
+						}
+						List<String> row = Arrays.asList(Integer.toString(round),
+														 playerWrappers.get(teamID - 1).getPlayerName(),
+														 playerWrappers.get(opponentID - 1).getPlayerName(),
+														 Integer.toString(goalsFor),
+														 Integer.toString(goalsAgainst),
+														 Integer.toString(goalDifference),
+														 Integer.toString(pointsFor),
+														 Integer.toString(pointsAgainst));
+						rows.add(row);
+					}
+				}
+			}
+			
+			FileWriter csvWriter = new FileWriter(csvPath);
+			csvWriter.append("Round,Team,Opponent,GF,GA,GD,PF,PA\n");
+			for(List<String> row : rows)
+				csvWriter.append(String.join(",", row) + "\n");
+			csvWriter.flush();
+			csvWriter.close();
+		}
 		System.exit(1);
 	}
 

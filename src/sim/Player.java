@@ -45,11 +45,12 @@ public abstract class Player {
 	/*
 	 * Check if the following constraints are satisfied:
 	 * 
-	 * 1. Number of player goals should stay between 0 and 8, inclusive
+	 * 1. Number of player goals should stay between 0 and the max number of goals allowed, inclusive
 	 * 2. Number of opponent goals for each game must not change
 	 * 3. Number of player goals for winning games should not increase
 	 * 4. Number of player goals for winning games should not decrease by more than half
-	 * 5. Number of player goals added and subtracted must match
+	 * 5. Number of player goals for losing and drawn games should not decrease
+	 * 6. Number of player goals added and subtracted must match
 	 * 
 	 * @param originalPlayerGames     list of original player games 
 	 * @param reallocatedPlayerGames  list of reallocated player games
@@ -70,10 +71,12 @@ public abstract class Player {
 			if(!reallocatedPlayerGamesMap.containsKey(originalPlayerGame.getID()))
 				continue;
 			Game reallocatedPlayerGame = reallocatedPlayerGamesMap.get(originalPlayerGame.getID());
-			boolean isOriginalWinningGame = originalPlayerGame.getNumPlayerGoals() > originalPlayerGame.getNumOpponentGoals();
+			boolean isOriginalWinningGame = hasWonGame(originalPlayerGame);
+			boolean isOriginalLosingGame = hasLostGame(originalPlayerGame);
+			boolean isOriginalDrawnGame = hasDrawnGame(originalPlayerGame);
 			
 			// Constraint 1
-			if(reallocatedPlayerGame.getNumPlayerGoals() < 0 || reallocatedPlayerGame.getNumPlayerGoals() > 8)
+			if(reallocatedPlayerGame.getNumPlayerGoals() < 0 || reallocatedPlayerGame.getNumPlayerGoals() > Game.getMaxGoalThreshold())
 				return false;
 
 			// Constraint 2
@@ -94,9 +97,15 @@ public abstract class Player {
 			
 			totalNumOriginalPlayerGoals += originalPlayerGame.getNumPlayerGoals();
 			totalNumReallocatedPlayerGoals += reallocatedPlayerGame.getNumPlayerGoals();
+			
+			// Constraint 5
+			boolean numPlayerGoalsDecreased = reallocatedPlayerGame.getNumPlayerGoals() < originalPlayerGame.getNumPlayerGoals();
+			if((isOriginalLosingGame || isOriginalDrawnGame) && numPlayerGoalsDecreased)
+				return false;
+			
 		}
 		
-		// Constraint 5
+		// Constraint 6
 		if(totalNumOriginalPlayerGoals != totalNumReallocatedPlayerGoals)
 			return false;
 			
