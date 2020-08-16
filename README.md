@@ -107,17 +107,19 @@ Additionally, please comment out or remove any print statements you may have inc
 
 > **[-s | --seed]**: seed value for random player
 
-> **[-l | --log]**: enable logging and specify the log file
+> **[-l FILE | --log FILE]**: enable logging and output log to both console and log file
 
-> **[-v | --verbose]**: flag for recording verbose log during games when logging is enabled
+> **[-v | --verbose]**: record verbose log when logging is enabled
 
-> **[-g | --gui]**: enable the GUI
+> **[-e FILE | --export FILE]**: export all game information to CSV file
 
-> **[-c | --continuous]**: continuous GUI for simulation when GUI is enabled
+> **[-g | --gui]**: enable GUI
 
-> **[-d | --discrete]**: discrete/frame-by-frame GUI for simulation when GUI is enabled
+> **[-c | --continuous]**: enable continuous GUI for simulation when GUI is enabled
 
-> **[-f | --fps]**: speed (frames per second) of the GUI when continuous GUI is enabled
+> **[-d | --discrete]**: enable discrete/frame-by-frame GUI for simulation when GUI is enabled
+
+> **[-f | --fps]**: speed (frames per second) of GUI when continuous GUI is enabled
 
 
 ## Class Design
