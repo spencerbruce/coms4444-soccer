@@ -101,23 +101,25 @@ Additionally, please comment out or remove any print statements you may have inc
     * `make gui`: view results/rankings from the GUI
 
 #### Simulator arguments:
-> **[-r | --rounds]**: number of rounds
+> **[-r | --rounds]**: number of rounds (default = 10)
 
 > **[-p | --players]**: space-separated players/teams
 
-> **[-s | --seed]**: seed value for random player
+> **[-s | --seed]**: seed value for random player (default = 10)
 
-> **[-l | --log]**: enable logging and specify the log file
+> **[-l PATH | --log PATH]**: enable logging and output log to both console and log file
 
-> **[-v | --verbose]**: flag for recording verbose log during games when logging is enabled
+> **[-v | --verbose]**: record verbose log when logging is enabled (default = false)
 
-> **[-g | --gui]**: enable the GUI
+> **[-e PATH | --export PATH]**: export all game information to CSV file (default = false)
 
-> **[-c | --continuous]**: continuous GUI for simulation when GUI is enabled
+> **[-g | --gui]**: enable GUI (default = false)
 
-> **[-d | --discrete]**: discrete/frame-by-frame GUI for simulation when GUI is enabled
+> **[-c | --continuous]**: enable continuous GUI for simulation when GUI is enabled (default = true)
 
-> **[-f | --fps]**: speed (frames per second) of the GUI when continuous GUI is enabled
+> **[-d | --discrete]**: enable discrete/frame-by-frame GUI for simulation when GUI is enabled (default = false)
+
+> **[-f | --fps]**: speed (frames per second) of GUI when continuous GUI is enabled (default = 30)
 
 
 ## Class Design
