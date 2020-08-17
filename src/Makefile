@@ -1,11 +1,11 @@
 run:
-	java sim.Simulator --players random random random random random random random random random random -r 100 -s 10 -l log.txt
+	java -cp .:org.json.jar sim.Simulator --players random random random random random random random random random random -r 10 -s 10 -l log.txt
 
 gui:
-	java sim.Simulator --players random random random random random random random random random random -r 100 -s 10 --gui -l log.txt
+	java -cp .:org.json.jar sim.Simulator --players random random random random random random random random random random -r 10 -s 10 --gui -l log.txt
 
 compile:
-	javac */*.java
+	javac -cp .:org.json.jar */*.java
 
 clean:
 	rm */*.class

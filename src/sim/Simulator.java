@@ -9,8 +9,11 @@
 
 package sim;
 
+import java.awt.Desktop;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,6 +21,10 @@ import java.util.stream.Collectors;
 import javax.tools.JavaCompiler;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class Simulator {
 	
@@ -153,7 +160,23 @@ public class Simulator {
         Log.writeToLogFile("\n");
 	}
 
-	private static void runSimulation() throws IOException {
+	private static void runSimulation() throws IOException, JSONException {
+		
+		HTTPServer server = null;
+		if(showGUI) {
+            server = new HTTPServer();
+            Log.writeToLogFile("Hosting the HTTP Server on " + server.addr());
+            if(!Desktop.isDesktopSupported())
+                Log.writeToLogFile("Desktop operations not supported!");
+            else if(!Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
+                Log.writeToLogFile("Desktop browse operation not supported!");
+            else {
+                try {
+                    Desktop.getDesktop().browse(new URI("http://localhost:" + server.port()));
+                } catch(URISyntaxException e) {}
+            }
+        }
+		
 		for(int i = 0; i <= rounds; i++) {
 			currentRound = i;
 			Map<Integer, List<Game>> roundGamesMap = new HashMap<>();
@@ -228,9 +251,16 @@ public class Simulator {
 
 				Log.writeToVerboseLogFile("---------------------------------------------------------Round " + currentRound + " Results----------------------------------------------------------------");
 				Log.writeToVerboseLogFile("Team\t\tRound Rank\tAverage Rank\tRound Points\tCumulative Points\tMatches\tWins\tLosses\tDraws");
-
-		        
+	        
 				Map<Integer, Double> orderedRoundRankingsMap = gameHistory.getAllRoundRankingsMap().get(currentRound).entrySet()
+						  .stream()
+						  .sorted(Map.Entry.comparingByValue())
+						  .collect(Collectors.toMap(
+						    Map.Entry::getKey, 
+						    Map.Entry::getValue,
+						    (oldRank, newRank) -> oldRank, LinkedHashMap::new));
+
+				Map<Integer, Double> orderedRoundAverageRankingsMap = gameHistory.getAllAverageRankingsMap().get(currentRound).entrySet()
 						  .stream()
 						  .sorted(Map.Entry.comparingByValue())
 						  .collect(Collectors.toMap(
@@ -268,6 +298,16 @@ public class Simulator {
 				}
 
 				Log.writeToVerboseLogFile("---------------------------------------------------------End of Round " + currentRound + "-----------------------------------------------------------------");			
+				
+				if(showGUI)
+					updateGUI(server, getGUIState(currentRound,
+												  roundGamesMap,
+												  roundPointsMap,
+												  roundCumulativePointsMap,
+												  roundRankingsMap,
+												  orderedRoundRankingsMap,
+												  roundAverageRankingsMap,
+												  orderedRoundAverageRankingsMap));
 			}
 		}
 		
@@ -275,7 +315,6 @@ public class Simulator {
 		Log.writeToLogFile("-------------------------------------------------------------Overall Results-------------------------------------------------------------");
 		Log.writeToLogFile("Team\t\tFinal Rank\tTotal Points\tMatches\tWins\tLosses\tDraws\tGoals For\tGoals Against\tGoal Difference");
 
-        
 		Map<Integer, Double> finalRankingsMap = gameHistory.getAllAverageRankingsMap().get(rounds).entrySet()
 				  .stream()
 				  .sorted(Map.Entry.comparingByValue())
@@ -368,7 +407,9 @@ public class Simulator {
 			csvWriter.flush();
 			csvWriter.close();
 		}
-		System.exit(1);
+		
+		if(!showGUI)
+			System.exit(1);
 	}
 
 	private static Map<Integer, PlayerPoints> computeTeamPoints(Map<Integer, List<Game>> roundGamesMap) {
@@ -665,11 +706,66 @@ public class Simulator {
         }		
 	}
 	
-	private static String getGUIState(double fps) {
-		return "";
+	private static String getGUIState(int round,
+									  Map<Integer, List<Game>> roundGamesMap,
+									  Map<Integer, PlayerPoints> roundPointsMap,
+									  Map<Integer, PlayerPoints> roundCumulativePointsMap,
+									  Map<Integer, Double> roundRankingsMap,
+									  Map<Integer, Double> orderedRoundRankingsMap,
+									  Map<Integer, Double> roundAverageRankingsMap,
+									  Map<Integer, Double> orderedRoundAverageRankingsMap) throws JSONException {
+
+		JSONObject jsonObj = new JSONObject();
+		jsonObj.put("refresh", 1000.0 / fps);
+		jsonObj.put("round", round);
+		
+		JSONObject roundGamesJSONObj = new JSONObject();
+		JSONObject roundPointsJSONObj = new JSONObject();
+		JSONObject roundCumulativePointsJSONObj = new JSONObject();
+		JSONObject roundRankingsJSONObj = new JSONObject();
+		JSONArray orderedRoundRankingsJSONArray = new JSONArray();
+		JSONObject roundAverageRankingsJSONObj = new JSONObject();
+		JSONArray orderedRoundAverageRankingsJSONArray = new JSONArray();
+		for(Integer teamID : roundGamesMap.keySet()) {			
+			JSONObject teamGamesJSONObj = new JSONObject();
+			for(Game game : roundGamesMap.get(teamID)) {
+				int gameID = game.getID();
+				int numPlayerGoals = game.getNumPlayerGoals();
+				int numOpponentGoals = game.getNumOpponentGoals();
+				teamGamesJSONObj.put("opponent", playerWrappers.get(gameID - 1).getPlayerName());
+				teamGamesJSONObj.put("playerGoals", numPlayerGoals);
+				teamGamesJSONObj.put("opponentGoals", numOpponentGoals);
+			}
+			
+			roundGamesJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), teamGamesJSONObj);
+			roundPointsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), Integer.parseInt(roundPointsMap.get(teamID).toString()));
+			roundCumulativePointsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), Integer.parseInt(roundCumulativePointsMap.get(teamID).toString()));
+			roundRankingsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), roundRankingsMap.get(teamID));
+			roundAverageRankingsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), roundAverageRankingsMap.get(teamID));
+		}
+		for(Integer teamID : orderedRoundRankingsMap.keySet()) {
+			JSONObject orderedRoundRankingsJSONObj = new JSONObject();
+			orderedRoundRankingsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), orderedRoundRankingsMap.get(teamID));
+			orderedRoundRankingsJSONArray.put(orderedRoundRankingsJSONObj);
+		}
+		for(Integer teamID : orderedRoundAverageRankingsMap.keySet()) {
+			JSONObject orderedRoundAverageRankingsJSONObj = new JSONObject();			
+			orderedRoundAverageRankingsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), orderedRoundAverageRankingsMap.get(teamID));
+			orderedRoundAverageRankingsJSONArray.put(orderedRoundAverageRankingsJSONObj);
+		}
+		
+		jsonObj.put("games", roundGamesJSONObj);
+		jsonObj.put("points", roundPointsJSONObj);
+		jsonObj.put("cumulativePoints", roundCumulativePointsJSONObj);
+		jsonObj.put("rankings", roundRankingsJSONObj);
+		jsonObj.put("orderedRankings", orderedRoundRankingsJSONArray);
+		jsonObj.put("averageRankings", roundAverageRankingsJSONObj);
+		jsonObj.put("orderedAverageRankings", orderedRoundAverageRankingsJSONArray);
+				
+        return jsonObj.toString();
 	}
 	
-	public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException {
+	public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException, JSONException {
 		setup();
 		parseCommandLineArguments(args);
 		runSimulation();
