@@ -111,7 +111,7 @@ Additionally, please comment out or remove any print statements you may have inc
 
 > **[-v | --verbose]**: record verbose log when logging is enabled (default = false)
 
-> **[-e PATH | --export PATH]**: export all game information to CSV file (default = false)
+> **[-e PATH | --export PATH]**: export all game information to CSV file
 
 > **[-g | --gui]**: enable GUI (default = false)
 
