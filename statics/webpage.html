@@ -2,25 +2,276 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
   <head>
     <title>PPS 2020 - Retroactive Soccer</title>
+
+    <script type="text/javascript" src="https://cdn.anychart.com/releases/8.0.0/js/anychart-base.min.js"></script>
+
+    <script type="text/javascript" src="https://cdn.anychart.com/releases/8.0.0/themes/dark_earth.min.js"></script>
+
+    <script type="text/javascript" src="https://cdn.anychart.com/releases/8.0.0/themes/dark_glamour.min.js"></script>
+
     <style type="text/css">
-      canvas {
-        padding-left: 0;
-        padding-right: 0;
-        margin-left: auto;
-        margin-right: auto;
-        display: block;
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
       }
+      body {
+        background-color: black;
+      }
+      h2 {
+        text-align: center;
+        color: white;
+      }
+
+      #cumulativeContainer1 {
+        width: 45%;
+        height: 45%;
+        margin: 5px;
+        padding: 5px;
+      }      
+
+      #cumulativeContainer2 {
+        width: 45%;
+        height: 45%;
+        margin: 5px;
+        padding: 5px;
+      }      
+
     </style>
+
   </head>
   <body>
-	<h2 style="text-align: center;"> PPS 2020 - Retroactive Soccer</h2>
-
-  <center>
-    <canvas id="canvas" width="1200px" height="400px" style="margin: auto"></canvas>
-  </center>
+  	<h2> PPS 2020 - Retroactive Soccer</h2>
   
-  <h2 id="time"style="text-align: center;">Time: </h2>
+    <div id="cumulativeContainer1"></div>
+    <div id="cumulativeContainer2"></div>
 
-  <script type="text/javascript" src="script.js"></script>
+    <script>
+      var regexAlpha = /[^a-zA-Z]/g;
+      var regexNumeric = /[^0-9]/g;
+
+      function sortAlphaNumeric(a, b) {
+        var aAlpha = a.replace(regexAlpha, "");
+        var bAlpha = b.replace(regexAlpha, "");
+        if(aAlpha === bAlpha) {
+          var aNumeric = parseInt(a.replace(regexNumeric, ""), 10);
+          var bNumeric = parseInt(b.replace(regexNumeric, ""), 10);
+          return aNumeric === bNumeric ? 0 : aNumeric > bNumeric ? 1 : -1;
+        }
+        return aAlpha > bAlpha ? 1 : -1;
+      }
+
+      function cumulativePoints(result) {
+
+          cumPointsElement = document.getElementById('cumulativeContainer1');
+          cumPointsElement.innerHTML = "";
+
+          anychart.onDocumentReady(function() {
+              anychart.theme(anychart.themes.darkEarth);
+
+              var cumulativePoints = result.cumulativePoints;
+              var teams = Object.keys(cumulativePoints).sort(sortAlphaNumeric);
+
+              var rows = [];
+              for(var team of teams)
+                rows.push([team, cumulativePoints[team]])
+
+              var cumulativePointsData = {
+                  header: ["Team", "Cumulative Team Points"],
+                  rows: rows
+              };
+
+              var chart = anychart.bar();
+              chart.data(cumulativePointsData);
+              chart.animation(true);
+              chart.title("Cumulative Points");
+              chart.tooltip().position('right-center');
+              chart.tooltip().background().fill("black");
+              chart.tooltip().title().fontColor("white");
+              chart.tooltip().fontColor("white");
+              chart.xAxis().title('Team')
+              chart.yAxis().title('Number of Points');
+              
+              chart.hovered().labels(true);
+
+              chart.labels(true);
+              chart
+                  .labels()
+                  .fontColor("white")
+                  .format('{%Value}{groupsSeparator:}');
+
+              chart.container("cumulativeContainer1");
+              chart.draw();
+          });
+      }
+
+      function cumulativeResults(result) {
+
+          cumResultsElement = document.getElementById('cumulativeContainer2');
+          cumResultsElement.innerHTML = "";
+
+
+          anychart.onDocumentReady(function() {
+              anychart.theme(anychart.themes.darkGlamour);
+
+              var cumulativeWins = result.cumulativeWins;
+              var cumulativeLosses = result.cumulativeLosses;
+              var cumulativeDraws = result.cumulativeDraws;
+
+              var teams = Object.keys(cumulativeWins).sort(sortAlphaNumeric);
+              console.log(typeof cumulativeWins)
+
+              var cumulativeResultsData = []
+              for(var team of teams) {                  
+                  teamCumulativeResults = [team]
+                  teamCumulativeResults.push(cumulativeWins[team]);
+                  teamCumulativeResults.push(cumulativeLosses[team]);
+                  teamCumulativeResults.push(cumulativeDraws[team]);
+
+                  cumulativeResultsData.push(teamCumulativeResults)
+              }
+
+              var dataSet = anychart.data.set(cumulativeResultsData);
+
+              var winSeriesData = dataSet.mapAs({x: 0, value: 1});
+              var lossSeriesData = dataSet.mapAs({x: 0, value: 2});
+              var drawSeriesData = dataSet.mapAs({x: 0, value: 3});
+
+              var chart = anychart.column();
+              chart.title("Cumulative Win-Loss Record")
+              chart.animation(true);
+              chart.xAxis().title('Team')
+              chart.yAxis().title('Number of Games');
+
+              var setupSeries = function (series, name) {
+                series.name(name);
+                series.hovered().labels(false);
+
+
+                series.labels(true);
+                series
+                  .labels()
+                  .fontColor("white")
+                  .format('{%Value}{groupsSeparator:}');
+
+                series
+                  .tooltip()
+                  .position('center-top')
+                  .offsetX(5)
+                  .offsetY(0)
+                  .titleFormat('{%X}')
+                  .fontColor("white")
+                  .format('{%SeriesName}: {%Value}{groupsSeparator:}\n');
+
+                series
+                  .tooltip()
+                  .title()
+                  .fontFamily("Calibri")
+                  .fontColor("white")
+                  .fontDecoration("bold");
+              };
+
+              var series;
+
+              series = chart.column(winSeriesData);
+              setupSeries(series, 'Wins');
+              series.tooltip().background().fill("green");
+
+              series = chart.column(lossSeriesData);
+              setupSeries(series, 'Losses');
+              series.tooltip().background().fill("red");
+
+              series = chart.column(drawSeriesData);
+              setupSeries(series, 'Draws');
+              series.tooltip().background().fill("orange");
+              series.tooltip().title().fontColor("black");
+              series.tooltip().fontColor("black");
+
+              chart.legend().enabled(true).fontSize(13).padding([0, 0, 20, 0]);
+              chart.interactivity().hoverMode('single');
+              chart.tooltip().positionMode('point');
+
+              chart.container('cumulativeContainer2');
+              chart.draw();
+          });
+      }
+
+      function cumulativeAverageRank(result) {
+
+      }
+
+      function roundGameGrid(result) {
+
+      }
+
+      function roundSummary(result) {
+
+      }
+
+      function process(data) {
+          var result = JSON.parse(data)
+
+          console.log(result);
+
+          var refresh = parseFloat(result.refresh);
+          var round = result.round;
+
+          cumulativePoints(result)
+          cumulativeResults(result)
+          
+          roundElement = document.getElementById('round');
+          roundElement.innerHTML = "<pre>" + "Round: " + round + "</pre>";
+
+          return refresh;
+      }
+
+      var latest_version = -1;
+
+      function ajax(version, retries, timeout) {
+          var xhttp = new XMLHttpRequest();
+          xhttp.onload = (function() {
+              var refresh = -1;
+              try {
+                  if(xhttp.readyState != 4)   
+                      throw "Incomplete HTTP request: " + xhttp.readyState;
+                  if(xhttp.status != 200)
+                      throw "Invalid HTTP status: " + xhttp.status;
+
+                  refresh = process(xhttp.responseText);
+                  if(latest_version < version)
+                      latest_version = version;
+                  else
+                      refresh = -1;
+              } catch(message) {
+                  alert(message);
+              }
+
+              if(refresh >= 0)
+                  setTimeout(function() { ajax(version + 1, 10, 100); }, refresh);
+          });
+          xhttp.onabort = (function() { location.reload(true); });
+          xhttp.onerror = (function() { location.reload(true); });
+          xhttp.ontimeout = (function() {
+              if(version <= latest_version)
+                  console.log("AJAX timeout (version " + version + " <= " + latest_version + ")");
+              else if(retries == 0)
+                  location.reload(true);
+              else {
+                  console.log("AJAX timeout (version " + version + ", retries: " + retries + ")");
+                  ajax(version, retries - 1, timeout * 2);
+              }
+          });
+          xhttp.open("GET", "data.txt", true);
+          xhttp.responseType = "text";
+          xhttp.timeout = timeout;
+          xhttp.send();
+      }
+
+      ajax(1, 10, 100);
+    </script>
+
+    <h2 id="round">Round: 0</h2>
+
   </body>
 </html>

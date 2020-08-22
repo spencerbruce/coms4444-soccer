@@ -37,7 +37,7 @@ public class Simulator {
 	// Constants
 	private static int seed = 10;
 	private static int rounds = 10;
-	private static double fps = 30;
+	private static double fpm = 30;
 	
 	private static int currentRound = 0;
 	private static long timeout = 1000;
@@ -101,11 +101,11 @@ public class Simulator {
                     }
                     else if(args[i].equals("-v") || args[i].equals("--verbose"))
                         Log.assignVerbosityStatus(true);
-                    else if(args[i].equals("-f") || args[i].equals("--fps")) {
+                    else if(args[i].equals("-f") || args[i].equals("--fpm")) {
                     	i++;
                         if(i == args.length) 
                             throw new IllegalArgumentException("The GUI frames per second is missing!");
-                        fps = Double.parseDouble(args[i]);
+                        fpm = Double.parseDouble(args[i]);
                     }
                     else if(args[i].equals("-s") || args[i].equals("--seed")) {
                     	i++;
@@ -715,17 +715,72 @@ public class Simulator {
 									  Map<Integer, Double> roundAverageRankingsMap,
 									  Map<Integer, Double> orderedRoundAverageRankingsMap) throws JSONException {
 
+		Map<Integer, Map<Integer, List<Game>>> allGamesMap = gameHistory.getAllGamesMap(); 
+		Map<Integer, Integer> numCumulativeWinsMap = new HashMap<>();
+		Map<Integer, Integer> numCumulativeLossesMap = new HashMap<>();
+		Map<Integer, Integer> numCumulativeDrawsMap = new HashMap<>();
+		Map<Integer, Integer> numRoundWinsMap = new HashMap<>();
+		Map<Integer, Integer> numRoundLossesMap = new HashMap<>();
+		Map<Integer, Integer> numRoundDrawsMap = new HashMap<>();
+		
+		for(int gameRound : allGamesMap.keySet()) {
+			if(gameRound == 0)
+				continue;
+			
+			for(int teamID : allGamesMap.get(gameRound).keySet()) {
+				if(!numCumulativeWinsMap.containsKey(teamID))
+					numCumulativeWinsMap.put(teamID, 0);
+				if(!numCumulativeDrawsMap.containsKey(teamID))
+					numCumulativeDrawsMap.put(teamID, 0);
+				if(!numCumulativeLossesMap.containsKey(teamID))
+					numCumulativeLossesMap.put(teamID, 0);
+				for(Game game : allGamesMap.get(gameRound).get(teamID)) {
+					if(Player.hasWonGame(game))
+						numCumulativeWinsMap.put(teamID, numCumulativeWinsMap.get(teamID) + 1);
+					else if(Player.hasDrawnGame(game))
+						numCumulativeDrawsMap.put(teamID, numCumulativeDrawsMap.get(teamID) + 1);
+					else if(Player.hasLostGame(game))
+						numCumulativeLossesMap.put(teamID, numCumulativeLossesMap.get(teamID) + 1);
+				}
+			}
+		}
+		
+		for(int teamID : allGamesMap.get(round).keySet()) {
+			if(!numRoundWinsMap.containsKey(teamID))
+				numRoundWinsMap.put(teamID, 0);
+			if(!numRoundDrawsMap.containsKey(teamID))
+				numRoundDrawsMap.put(teamID, 0);
+			if(!numRoundLossesMap.containsKey(teamID))
+				numRoundLossesMap.put(teamID, 0);
+			for(Game game : allGamesMap.get(round).get(teamID)) {
+				if(Player.hasWonGame(game))
+					numRoundWinsMap.put(teamID, numRoundWinsMap.get(teamID) + 1);
+				else if(Player.hasDrawnGame(game))
+					numRoundDrawsMap.put(teamID, numRoundDrawsMap.get(teamID) + 1);
+				else if(Player.hasLostGame(game))
+					numRoundLossesMap.put(teamID, numRoundLossesMap.get(teamID) + 1);
+			}				
+		}
+		
 		JSONObject jsonObj = new JSONObject();
-		jsonObj.put("refresh", 1000.0 / fps);
+		jsonObj.put("refresh", 60000.0 / fpm);
 		jsonObj.put("round", round);
+		jsonObj.put("continuous", continuousGUI);
 		
 		JSONObject roundGamesJSONObj = new JSONObject();
 		JSONObject roundPointsJSONObj = new JSONObject();
 		JSONObject roundCumulativePointsJSONObj = new JSONObject();
 		JSONObject roundRankingsJSONObj = new JSONObject();
+		JSONObject numCumulativeWinsJSONObj = new JSONObject();
+		JSONObject numCumulativeDrawsJSONObj = new JSONObject();
+		JSONObject numCumulativeLossesJSONObj = new JSONObject();
+		JSONObject numRoundWinsJSONObj = new JSONObject();
+		JSONObject numRoundDrawsJSONObj = new JSONObject();
+		JSONObject numRoundLossesJSONObj = new JSONObject();
 		JSONArray orderedRoundRankingsJSONArray = new JSONArray();
 		JSONObject roundAverageRankingsJSONObj = new JSONObject();
 		JSONArray orderedRoundAverageRankingsJSONArray = new JSONArray();
+
 		for(Integer teamID : roundGamesMap.keySet()) {			
 			JSONObject teamGamesJSONObj = new JSONObject();
 			for(Game game : roundGamesMap.get(teamID)) {
@@ -740,8 +795,14 @@ public class Simulator {
 			roundGamesJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), teamGamesJSONObj);
 			roundPointsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), Integer.parseInt(roundPointsMap.get(teamID).toString()));
 			roundCumulativePointsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), Integer.parseInt(roundCumulativePointsMap.get(teamID).toString()));
-			roundRankingsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), roundRankingsMap.get(teamID));
-			roundAverageRankingsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), roundAverageRankingsMap.get(teamID));
+		  	roundRankingsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), roundRankingsMap.get(teamID));
+		  	numCumulativeWinsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), numCumulativeWinsMap.get(teamID));
+		  	numCumulativeDrawsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), numCumulativeDrawsMap.get(teamID));
+		  	numCumulativeLossesJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), numCumulativeLossesMap.get(teamID));
+		  	numRoundWinsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), numRoundWinsMap.get(teamID));
+		  	numRoundDrawsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), numRoundDrawsMap.get(teamID));
+		  	numRoundLossesJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), numRoundLossesMap.get(teamID));
+		  	roundAverageRankingsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), roundAverageRankingsMap.get(teamID));
 		}
 		for(Integer teamID : orderedRoundRankingsMap.keySet()) {
 			JSONObject orderedRoundRankingsJSONObj = new JSONObject();
@@ -758,6 +819,12 @@ public class Simulator {
 		jsonObj.put("points", roundPointsJSONObj);
 		jsonObj.put("cumulativePoints", roundCumulativePointsJSONObj);
 		jsonObj.put("rankings", roundRankingsJSONObj);
+		jsonObj.put("cumulativeWins", numCumulativeWinsJSONObj);
+		jsonObj.put("cumulativeDraws", numCumulativeDrawsJSONObj);
+		jsonObj.put("cumulativeLosses", numCumulativeLossesJSONObj);
+		jsonObj.put("roundWins", numRoundWinsJSONObj);
+		jsonObj.put("roundDraws", numRoundDrawsJSONObj);
+		jsonObj.put("roundLosses", numRoundLossesJSONObj);
 		jsonObj.put("orderedRankings", orderedRoundRankingsJSONArray);
 		jsonObj.put("averageRankings", roundAverageRankingsJSONObj);
 		jsonObj.put("orderedAverageRankings", orderedRoundAverageRankingsJSONArray);
