@@ -119,7 +119,7 @@ Additionally, please comment out or remove any print statements you may have inc
 
 > **[-d | --discrete]**: enable discrete/frame-by-frame GUI for simulation when GUI is enabled (default = false)
 
-> **[-f | --fpm]**: speed (frames per minute) of GUI when continuous GUI is enabled (default = 30)
+> **[-f | --fpm]**: speed (frames per minute) of GUI when continuous GUI is enabled (default = 15)
 
 
 ## Class Design
