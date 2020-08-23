@@ -16,36 +16,133 @@
         margin: 0;
         padding: 0;
       }
+
       body {
         background-color: black;
       }
+
+      h1 {
+        text-align: center;
+        color: white;
+      }
+
       h2 {
         text-align: center;
         color: white;
       }
 
-      #cumulativeContainer1 {
-        width: 45%;
-        height: 45%;
-        margin: 5px;
-        padding: 5px;
-      }      
+      #cumulativeWrapper {
+        overflow: hidden;
+        width: 100%;
+        height: 40%;
+      }
+
+      #roundWrapper {
+        overflow: hidden;
+        width: 100%;
+        height: 40%;
+      }
+
+      #cumulativeContainer1a {
+        width: 48%;
+        height: 60%;
+        margin: 10px;
+        padding-left: 5px;
+        float: left;
+      }
+
+      #cumulativeContainer1b {
+        width: 48%;
+        height: 35%;
+        margin: 10px;
+        padding-left: 5px;
+        float: left;
+      }
 
       #cumulativeContainer2 {
-        width: 45%;
-        height: 45%;
-        margin: 5px;
-        padding: 5px;
-      }      
+        width: 48%;
+        height: 100%;
+        margin: 10px;
+        padding-right: 5px;
+        float: right;
+      }
+
+      #roundContainer1 {
+        display: grid;
+        width: 48%;
+        height: 100%;
+        margin: 10px;
+        padding-left: 5px;
+        float: left;
+        grid-gap: 0.1em;
+        grid-template-rows: repeat(var(--grid-rows), 1fr);
+        grid-template-columns: repeat(var(--grid-cols), 1fr);
+      }
+
+      #roundContainer2 {
+        width: 48%;
+        height: 100%;
+        margin: 10px;
+        padding-right: 5px;
+        float: right;
+      }
+
+      :root {
+        --grid-cols: 1;
+        --grid-rows: 1;
+      }
+
+      .grid-item {
+        background-color: black;
+        border: 1px solid black;
+        font-size: 20px;
+        text-align: center;
+        color: white;
+      }
+
+      table {
+        font-size: 20px;
+        border-collapse: collapse;
+        width: 100%;
+        height: 100%;
+      }
+
+      td, th {
+        text-align: left;
+        padding: 8px;
+      }
+
+      tr:nth-child(even) {
+        background-color: #444444;
+        color: white;
+      }
+
+      tr:nth-child(odd) {
+        background-color: black;
+        color: white;
+      }
 
     </style>
 
   </head>
   <body>
-  	<h2> PPS 2020 - Retroactive Soccer</h2>
+  	<h1>
+        <img src="soccerBall.png" alt="Retroactive Soccer" style="width: 40px;">
+        &nbsp;&nbsp;PPS 2020 - Retroactive Soccer&nbsp;&nbsp;
+        <img src="soccerBall.png" alt="Retroactive Soccer" style="width: 40px;">
+    </h1>
   
-    <div id="cumulativeContainer1"></div>
-    <div id="cumulativeContainer2"></div>
+    <h2 style="color:limegreen;">Cumulative Results</h1>
+    <div id="cumulativeWrapper">
+      <div id="cumulativeContainer1a"></div>
+      <div id="cumulativeContainer2"></div>
+    </div>
+    <br/>
+    <h2 style="color:limegreen;">Round Results</h1>
+    <div id="roundWrapper">
+      <div id="roundContainer1"></div>
+      <div id="roundContainer2"></div>
+    </div>
 
     <script>
       var regexAlpha = /[^a-zA-Z]/g;
@@ -62,15 +159,118 @@
         return aAlpha > bAlpha ? 1 : -1;
       }
 
-      function cumulativePoints(result) {
+      function cumulativePointsAndAverageRankings(result) {
 
-          cumPointsElement = document.getElementById('cumulativeContainer1');
-          cumPointsElement.innerHTML = "";
+          var container1a = document.getElementById("cumulativeContainer1a");
+          container1a.innerHTML = "";
+
+          var container2 = document.getElementById("cumulativeContainer2");
+
+          var currentRound = result.currentRound;
+          var totalRounds = result.totalRounds;
+
+          var container1b;
+          if(document.getElementById("cumulativeContainer1b") !== null)
+              container1b = document.getElementById("cumulativeContainer1b");
+          else {
+              container1b = document.createElement("div");
+              container1b.setAttribute("id", "cumulativeContainer1b");
+          }
+
+          var orderedAverageRankings = result.orderedAverageRankings;
+          var finalRankHTML = "";
+
+          var rankType = currentRound < totalRounds ? "Average" : "Final";
+
+          if(orderedAverageRankings.length <= 3) {
+              finalRankHTML = `
+                  <table style="font-size:15px">
+                      <tr>
+                          <th>${rankType} Rank</th>
+                          <th>Team</th>
+                      </tr>`;
+
+              for(var i = 0; i < orderedAverageRankings.length; i++) {
+                  var rankingObject = orderedAverageRankings[i];
+                  var ranking = rankingObject["ranking"];
+                  var team = rankingObject["team"];
+                  finalRankHTML += `
+                      <tr>
+                          <td>${ranking}</td>
+                          <td>${team}</td>
+                      </tr>
+                  `;
+              }
+          }
+          else {
+              finalRankHTML = `
+                  <table style="font-size:15px">
+                      <tr>
+                          <th>${rankType} Rank</th>
+                          <th>Team</th>
+                          <th>${rankType} Rank</th>
+                          <th>Team</th>
+                      </tr>`;
+
+              var fullLength = orderedAverageRankings.length;
+              var halfLength = Math.ceil(fullLength / 2);
+              for(var col1Index = 0; col1Index < halfLength; col1Index++) {
+                  var rankingObjectCol1 = orderedAverageRankings[col1Index];
+                  var rankingCol1 = rankingObjectCol1["ranking"];
+                  var teamCol1 = rankingObjectCol1["team"];
+
+                  var rankingCol2 = "", teamCol2 = "";
+                  var col2Index = col1Index + halfLength;
+                  if(col2Index < fullLength) {
+                      var rankingObjectCol2 = orderedAverageRankings[col2Index];
+                      rankingCol2 = rankingObjectCol2["ranking"];
+                      teamCol2 = rankingObjectCol2["team"];
+                  }
+
+                  var styleCol1 = "";
+                  var styleCol2 = "";
+                  if(currentRound == totalRounds) {
+                      if(col1Index == 0)
+                          styleCol1 = "style='background-color:gold; color:black;'";
+                      else if(col1Index == 1)
+                          styleCol1 = "style='background-color:silver; color:black;'";
+                      else if(col1Index == 2)
+                          styleCol1 = "style='background-color:#cd7f32;'";
+                      
+                      if(col2Index == 1)
+                          styleCol2 = "style='background-color:silver; color:black;'";
+                      else if(col2Index == 2)
+                          styleCol2 = "style='background-color:#cd7f32;'";
+                  }
+
+
+                  finalRankHTML += `
+                      <tr>
+                          <td ${styleCol1}>${rankingCol1}</td>
+                          <td ${styleCol1}>${teamCol1}</td>
+                          <td ${styleCol2}>${rankingCol2}</td>
+                          <td ${styleCol2}>${teamCol2}</td>
+                      </tr>
+                  `;
+              }
+          }
+
+          finalRankHTML += "</table>"
+
+          container1b.innerHTML = finalRankHTML;
+          var containerWrapper = document.getElementById("cumulativeWrapper");
+          containerWrapper.insertBefore(container1b, container1a);
+          var cloneContainer1a = container1a.cloneNode(true);
+          container1a.remove();
+          containerWrapper.appendChild(cloneContainer1a);
+
+          var addAnimation = currentRound == 1 || currentRound == totalRounds ? true : false;
 
           anychart.onDocumentReady(function() {
               anychart.theme(anychart.themes.darkEarth);
 
               var cumulativePoints = result.cumulativePoints;
+              var averageRankings = result.averageRankings;
               var teams = Object.keys(cumulativePoints).sort(sortAlphaNumeric);
 
               var rows = [];
@@ -84,14 +284,19 @@
 
               var chart = anychart.bar();
               chart.data(cumulativePointsData);
-              chart.animation(true);
+              chart.animation(addAnimation);
               chart.title("Cumulative Points");
+              chart.xAxis().title('Team')
+              chart.yAxis().title('Number of Points');
+
               chart.tooltip().position('right-center');
               chart.tooltip().background().fill("black");
               chart.tooltip().title().fontColor("white");
               chart.tooltip().fontColor("white");
-              chart.xAxis().title('Team')
-              chart.yAxis().title('Number of Points');
+              chart.tooltip().format(function(e) {
+                return `${this.seriesName}: ${this.value}\n
+                        Average Ranking: ${averageRankings[this.x]}`;
+              });
               
               chart.hovered().labels(true);
 
@@ -101,7 +306,7 @@
                   .fontColor("white")
                   .format('{%Value}{groupsSeparator:}');
 
-              chart.container("cumulativeContainer1");
+              chart.container("cumulativeContainer1a");
               chart.draw();
           });
       }
@@ -111,6 +316,10 @@
           cumResultsElement = document.getElementById('cumulativeContainer2');
           cumResultsElement.innerHTML = "";
 
+          var currentRound = result.currentRound;
+          var totalRounds = result.totalRounds;
+
+          var addAnimation = currentRound == 1 || currentRound == totalRounds ? true : false;
 
           anychart.onDocumentReady(function() {
               anychart.theme(anychart.themes.darkGlamour);
@@ -120,7 +329,6 @@
               var cumulativeDraws = result.cumulativeDraws;
 
               var teams = Object.keys(cumulativeWins).sort(sortAlphaNumeric);
-              console.log(typeof cumulativeWins)
 
               var cumulativeResultsData = []
               for(var team of teams) {                  
@@ -140,7 +348,7 @@
 
               var chart = anychart.column();
               chart.title("Cumulative Win-Loss Record")
-              chart.animation(true);
+              chart.animation(addAnimation);
               chart.xAxis().title('Team')
               chart.yAxis().title('Number of Games');
 
@@ -162,7 +370,7 @@
                   .offsetY(0)
                   .titleFormat('{%X}')
                   .fontColor("white")
-                  .format('{%SeriesName}: {%Value}{groupsSeparator:}\n');
+                  .format('{%SeriesName}: {%Value}{groupsSeparator:}');
 
                 series
                   .tooltip()
@@ -184,9 +392,7 @@
 
               series = chart.column(drawSeriesData);
               setupSeries(series, 'Draws');
-              series.tooltip().background().fill("orange");
-              series.tooltip().title().fontColor("black");
-              series.tooltip().fontColor("black");
+              series.tooltip().background().fill("darkorange");
 
               chart.legend().enabled(true).fontSize(13).padding([0, 0, 20, 0]);
               chart.interactivity().hoverMode('single');
@@ -197,16 +403,157 @@
           });
       }
 
-      function cumulativeAverageRank(result) {
-
-      }
-
       function roundGameGrid(result) {
 
+          var victoryShades = [
+              "#00B800",
+              "#00AA00",
+              "#009C00",
+              "#008E00",
+              "green",
+              "#007200",
+              "darkgreen",
+              "#003300"
+          ];
+          var drawShade = "darkorange";
+          var lossShades = [
+              "red",
+              "#EB0000",
+              "#D80000",
+              "#C50000",
+              "#B10000",
+              "#980000",
+              "darkred",
+              "#780000"
+          ];
+
+          var games = result.games;
+          var teams = Object.keys(games).sort(sortAlphaNumeric);
+
+          var goalsForMap = {};
+          var goalDifferenceMap = {};
+
+          for(var team of teams) {
+              var opponents = Object.keys(games[team]).sort(sortAlphaNumeric);
+              
+              var goalsForRow = [];
+              var goalDifferenceRow = [];
+              for(var opponent of opponents) {
+                  var playerGoals = games[team][opponent]["playerGoals"];
+                  var opponentGoals = games[team][opponent]["opponentGoals"];
+                  var goalDifference = playerGoals - opponentGoals;
+
+                  goalsForRow.push(playerGoals);
+                  goalDifferenceRow.push(goalDifference);
+              }
+              goalsForMap[team] = goalsForRow;
+              goalDifferenceMap[team] = goalDifferenceRow;
+          }
+
+          var container = document.getElementById("roundContainer1");
+          container.innerHTML = "";
+
+          container.style.setProperty('--grid-rows', teams.length + 1);
+          container.style.setProperty('--grid-cols', teams.length + 1);
+
+          var firstCell = document.createElement("div");
+          firstCell.innerText = "";
+          container.appendChild(firstCell).className = "grid-item";
+
+          for(var team of teams) {
+              var cell = document.createElement("div");
+              cell.innerText = team;
+              container.appendChild(cell).className = "grid-item";
+          }
+
+          var row = 1;
+          for(var team of teams) {
+              var firstCell = document.createElement("div");
+              firstCell.innerText = team;
+              container.appendChild(firstCell).className = "grid-item";
+
+              var col = 1;
+              for(var playerGoals of goalsForMap[team]) {
+                  if(row === col) {
+                      var cell = document.createElement("div");
+                      cell.innerText = "---";
+                      container.appendChild(cell).className = "grid-item";
+                  }
+
+                  var cell = document.createElement("div");
+
+                  var goalDifference = goalDifferenceMap[team][col - 1];
+                  if(goalDifference > 0)
+                      cell.style.backgroundColor = victoryShades[goalDifference - 1];
+                  else if(goalDifference < 0) {
+                      positiveGoalDifference = -goalDifference;
+                      cell.style.backgroundColor = lossShades[positiveGoalDifference - 1];
+                  }
+                  else
+                      cell.style.backgroundColor = drawShade;
+
+                  cell.innerText = playerGoals;
+                  container.appendChild(cell).className = "grid-item";
+
+                  col++;
+              }
+
+              row++;
+          };
+
+          var lastCell = document.createElement("div");
+          lastCell.innerText = "---";
+          container.appendChild(lastCell).className = "grid-item";
       }
 
       function roundSummary(result) {
+          var container = document.getElementById("roundContainer2");
+          container.innerHTML = "";
 
+          var finalHTML = `
+              <table>
+                  <tr>
+                      <th>Ranking</th>
+                      <th>Team</th>
+                      <th>Points</th>
+                      <th>P</th>
+                      <th>W</th>
+                      <th>L</th>
+                      <th>D</th>
+                  </tr>`;
+
+          var orderedRoundRankings = result.orderedRankings;
+          var allPoints = result.points;
+          var allWins = result.roundWins;
+          var allLosses = result.roundLosses;
+          var allDraws = result.roundDraws;
+
+          for(var i = 0; i < orderedRoundRankings.length; i++) {
+              var rankingObject = orderedRoundRankings[i];
+              var ranking = rankingObject["ranking"];
+              var team = rankingObject["team"];
+              var points = allPoints[team];
+              var wins = allWins[team];
+              var losses = allLosses[team];
+              var draws = allDraws[team];
+              var played = wins + losses + draws;
+
+              finalHTML += `
+                  <tr>
+                      <td>${ranking}</td>
+                      <td>${team}</td>
+                      <td>${points}</td>
+                      <td>${played}</td>
+                      <td>${wins}</td>
+                      <td>${losses}</td>
+                      <td>${draws}</td>
+                  </tr>
+              `;
+          }
+
+          finalHTML += "</table>"
+
+          container.innerHTML = finalHTML;
       }
 
       function process(data) {
@@ -215,12 +562,14 @@
           console.log(result);
 
           var refresh = parseFloat(result.refresh);
-          var round = result.round;
+          var round = result.currentRound;
 
-          cumulativePoints(result)
-          cumulativeResults(result)
+          cumulativePointsAndAverageRankings(result);
+          cumulativeResults(result);
+          roundGameGrid(result);
+          roundSummary(result);
           
-          roundElement = document.getElementById('round');
+          var roundElement = document.getElementById('round');
           roundElement.innerHTML = "<pre>" + "Round: " + round + "</pre>";
 
           return refresh;
@@ -250,8 +599,8 @@
               if(refresh >= 0)
                   setTimeout(function() { ajax(version + 1, 10, 100); }, refresh);
           });
-          xhttp.onabort = (function() { location.reload(true); });
-          xhttp.onerror = (function() { location.reload(true); });
+          xhttp.onabort = (function() {});
+          xhttp.onerror = (function() {});
           xhttp.ontimeout = (function() {
               if(version <= latest_version)
                   console.log("AJAX timeout (version " + version + " <= " + latest_version + ")");

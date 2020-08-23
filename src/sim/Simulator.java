@@ -37,7 +37,7 @@ public class Simulator {
 	// Constants
 	private static int seed = 10;
 	private static int rounds = 10;
-	private static double fpm = 30;
+	private static double fpm = 15;
 	
 	private static int currentRound = 0;
 	private static long timeout = 1000;
@@ -764,7 +764,8 @@ public class Simulator {
 		
 		JSONObject jsonObj = new JSONObject();
 		jsonObj.put("refresh", 60000.0 / fpm);
-		jsonObj.put("round", round);
+		jsonObj.put("totalRounds", rounds);
+		jsonObj.put("currentRound", round);
 		jsonObj.put("continuous", continuousGUI);
 		
 		JSONObject roundGamesJSONObj = new JSONObject();
@@ -781,37 +782,44 @@ public class Simulator {
 		JSONObject roundAverageRankingsJSONObj = new JSONObject();
 		JSONArray orderedRoundAverageRankingsJSONArray = new JSONArray();
 
+		DecimalFormat rankFormat = new DecimalFormat("###.####");
+
 		for(Integer teamID : roundGamesMap.keySet()) {			
 			JSONObject teamGamesJSONObj = new JSONObject();
 			for(Game game : roundGamesMap.get(teamID)) {
 				int gameID = game.getID();
 				int numPlayerGoals = game.getNumPlayerGoals();
 				int numOpponentGoals = game.getNumOpponentGoals();
-				teamGamesJSONObj.put("opponent", playerWrappers.get(gameID - 1).getPlayerName());
-				teamGamesJSONObj.put("playerGoals", numPlayerGoals);
-				teamGamesJSONObj.put("opponentGoals", numOpponentGoals);
+
+				JSONObject teamGamesNestedJSONObj = new JSONObject();
+				teamGamesNestedJSONObj.put("playerGoals", numPlayerGoals);
+				teamGamesNestedJSONObj.put("opponentGoals", numOpponentGoals);
+				
+				teamGamesJSONObj.put(playerWrappers.get(gameID - 1).getPlayerName(), teamGamesNestedJSONObj);
 			}
 			
 			roundGamesJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), teamGamesJSONObj);
 			roundPointsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), Integer.parseInt(roundPointsMap.get(teamID).toString()));
 			roundCumulativePointsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), Integer.parseInt(roundCumulativePointsMap.get(teamID).toString()));
-		  	roundRankingsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), roundRankingsMap.get(teamID));
+		  	roundRankingsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), rankFormat.format(roundRankingsMap.get(teamID)));
 		  	numCumulativeWinsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), numCumulativeWinsMap.get(teamID));
 		  	numCumulativeDrawsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), numCumulativeDrawsMap.get(teamID));
 		  	numCumulativeLossesJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), numCumulativeLossesMap.get(teamID));
 		  	numRoundWinsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), numRoundWinsMap.get(teamID));
 		  	numRoundDrawsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), numRoundDrawsMap.get(teamID));
 		  	numRoundLossesJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), numRoundLossesMap.get(teamID));
-		  	roundAverageRankingsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), roundAverageRankingsMap.get(teamID));
+		  	roundAverageRankingsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), rankFormat.format(roundAverageRankingsMap.get(teamID)));
 		}
 		for(Integer teamID : orderedRoundRankingsMap.keySet()) {
 			JSONObject orderedRoundRankingsJSONObj = new JSONObject();
-			orderedRoundRankingsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), orderedRoundRankingsMap.get(teamID));
+			orderedRoundRankingsJSONObj.put("team", playerWrappers.get(teamID - 1).getPlayerName());
+			orderedRoundRankingsJSONObj.put("ranking", rankFormat.format(orderedRoundRankingsMap.get(teamID)));
 			orderedRoundRankingsJSONArray.put(orderedRoundRankingsJSONObj);
 		}
 		for(Integer teamID : orderedRoundAverageRankingsMap.keySet()) {
-			JSONObject orderedRoundAverageRankingsJSONObj = new JSONObject();			
-			orderedRoundAverageRankingsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), orderedRoundAverageRankingsMap.get(teamID));
+			JSONObject orderedRoundAverageRankingsJSONObj = new JSONObject();
+			orderedRoundAverageRankingsJSONObj.put("team", playerWrappers.get(teamID - 1).getPlayerName());
+			orderedRoundAverageRankingsJSONObj.put("ranking", rankFormat.format(orderedRoundAverageRankingsMap.get(teamID)));
 			orderedRoundAverageRankingsJSONArray.put(orderedRoundAverageRankingsJSONObj);
 		}
 		
