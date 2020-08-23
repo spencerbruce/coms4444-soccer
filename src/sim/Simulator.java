@@ -492,12 +492,12 @@ public class Simulator {
 	private static Map<Integer, Double> computeAverageRankings(Map<Integer, Double> roundPointsMap) {
 		Map<Integer, Double> averageRankingsMap = new HashMap<>();
 		
-		Map<Integer, Map<Integer, Double>> allAverageRankingsMap = gameHistory.getAllAverageRankingsMap();
+		Map<Integer, Map<Integer, Double>> allRoundRankingsMap = gameHistory.getAllRoundRankingsMap();
 		for(int teamID : roundPointsMap.keySet()) {
 			double rankSum = roundPointsMap.get(teamID);
-			for(int round : allAverageRankingsMap.keySet())
-				rankSum += allAverageRankingsMap.get(round).get(teamID);
-			double rankAverage = rankSum / (allAverageRankingsMap.size() + 1);
+			for(int round : allRoundRankingsMap.keySet())
+				rankSum += allRoundRankingsMap.get(round).get(teamID);
+			double rankAverage = rankSum / (allRoundRankingsMap.size() + 1);
 			averageRankingsMap.put(teamID, rankAverage);
 		}
 		

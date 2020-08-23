@@ -34,13 +34,13 @@
       #cumulativeWrapper {
         overflow: hidden;
         width: 100%;
-        height: 40%;
+        height: 42%;
       }
 
       #roundWrapper {
         overflow: hidden;
         width: 100%;
-        height: 40%;
+        height: 38%;
       }
 
       #cumulativeContainer1a {
@@ -85,7 +85,7 @@
         margin: 10px;
         padding-right: 5px;
         float: right;
-      }
+      }      
 
       :root {
         --grid-cols: 1;
@@ -95,6 +95,7 @@
       .grid-item {
         background-color: black;
         border: 1px solid black;
+        position: relative;
         font-size: 20px;
         text-align: center;
         color: white;
@@ -182,6 +183,11 @@
 
           var rankType = currentRound < totalRounds ? "Average" : "Final";
 
+          var allRanks = [];
+          for(var i = 0; i < orderedAverageRankings.length; i++)
+              allRanks.push(orderedAverageRankings[i]["ranking"])
+          var orderedDistinctRanks = Array.from(new Set(allRanks)).sort((a, b) => a - b);
+
           if(orderedAverageRankings.length <= 3) {
               finalRankHTML = `
                   <table style="font-size:15px">
@@ -194,10 +200,24 @@
                   var rankingObject = orderedAverageRankings[i];
                   var ranking = rankingObject["ranking"];
                   var team = rankingObject["team"];
+
+                  var style = "";
+                  if(currentRound == totalRounds) {
+                      for(var j = 0; j < Math.min(orderedDistinctRanks.length, 3); j++) {
+                          var topRank = orderedDistinctRanks[j];                          
+                          if(ranking == topRank && j == 0)
+                              style = "style='background-color:gold; color:black;'";
+                          else if(ranking == topRank && j == 1)
+                              style = "style='background-color:silver; color:black;'";
+                          else if(ranking == topRank && j == 2)
+                              style = "style='background-color:#cd7f32;'";                        
+                      }
+                  }
+
                   finalRankHTML += `
                       <tr>
-                          <td>${ranking}</td>
-                          <td>${team}</td>
+                          <td ${style}>${ranking}</td>
+                          <td ${style}>${team}</td>
                       </tr>
                   `;
               }
@@ -214,6 +234,7 @@
 
               var fullLength = orderedAverageRankings.length;
               var halfLength = Math.ceil(fullLength / 2);
+
               for(var col1Index = 0; col1Index < halfLength; col1Index++) {
                   var rankingObjectCol1 = orderedAverageRankings[col1Index];
                   var rankingCol1 = rankingObjectCol1["ranking"];
@@ -229,18 +250,22 @@
 
                   var styleCol1 = "";
                   var styleCol2 = "";
+
                   if(currentRound == totalRounds) {
-                      if(col1Index == 0)
-                          styleCol1 = "style='background-color:gold; color:black;'";
-                      else if(col1Index == 1)
-                          styleCol1 = "style='background-color:silver; color:black;'";
-                      else if(col1Index == 2)
-                          styleCol1 = "style='background-color:#cd7f32;'";
-                      
-                      if(col2Index == 1)
-                          styleCol2 = "style='background-color:silver; color:black;'";
-                      else if(col2Index == 2)
-                          styleCol2 = "style='background-color:#cd7f32;'";
+                      for(var i = 0; i < Math.min(orderedDistinctRanks.length, 3); i++) {
+                          var topRank = orderedDistinctRanks[i];                          
+                          if(rankingCol1 == topRank && i == 0)
+                              styleCol1 = "style='background-color:gold; color:black;'";
+                          else if(rankingCol1 == topRank && i == 1)
+                              styleCol1 = "style='background-color:silver; color:black;'";
+                          else if(rankingCol1 == topRank && i == 2)
+                              styleCol1 = "style='background-color:#cd7f32;'";
+                          
+                          if(rankingCol2 == topRank && i == 1)
+                              styleCol2 = "style='background-color:silver; color:black;'";
+                          else if(rankingCol2 == topRank && i == 2)
+                              styleCol2 = "style='background-color:#cd7f32;'";
+                      }
                   }
 
 
