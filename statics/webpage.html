@@ -123,6 +123,22 @@
         color: white;
       }
 
+      .previous, .next {
+        background-color: white;
+        color: black;
+      }
+
+      a {
+        text-decoration: none;
+        display: inline-block;
+        padding: 8px 16px;
+      }
+
+      a:hover {
+        background-color: #ddd;
+        color: black;
+      }
+
     </style>
 
   </head>
@@ -148,6 +164,9 @@
     <script>
       var regexAlpha = /[^a-zA-Z]/g;
       var regexNumeric = /[^0-9]/g;
+
+      var allResultsMap = {};
+      var discreteCurrentRound = "round_1";
 
       function sortAlphaNumeric(a, b) {
         var aAlpha = a.replace(regexAlpha, "");
@@ -584,10 +603,17 @@
       function process(data) {
           var result = JSON.parse(data)
 
-          console.log(result);
+          var continuous = result.continuous;
+          if(continuous)
+              return processContinuous(result);
+          else
+              return processDiscrete(result, true);
+      }
 
+      function processContinuous(result) {
           var refresh = parseFloat(result.refresh);
-          var round = result.currentRound;
+          var currentRound = result.currentRound;
+          var totalRounds = result.totalRounds;
 
           cumulativePointsAndAverageRankings(result);
           cumulativeResults(result);
@@ -595,9 +621,51 @@
           roundSummary(result);
           
           var roundElement = document.getElementById('round');
-          roundElement.innerHTML = "<pre>" + "Round: " + round + "</pre>";
+          roundElement.innerHTML = `Round: ${currentRound}/${totalRounds}`;
 
           return refresh;
+      }
+
+      function processDiscrete(result, processIsCaller) {
+          var currentRound = result.currentRound;
+          var totalRounds = result.totalRounds;
+
+          allResultsMap[`round_${result.currentRound}`] = result;
+
+          if(processIsCaller && currentRound != 1)
+              return 0;
+
+          discreteCurrentRound = `round_${result.currentRound}`;
+
+          cumulativePointsAndAverageRankings(result);
+          cumulativeResults(result);
+          roundGameGrid(result);
+          roundSummary(result);
+          
+          var roundElement = document.getElementById('round');
+
+          var previousButton = "", nextButton = "";
+
+          if(currentRound != 1)
+              previousButton = "<a onClick='processDiscreteDecrement()' class='previous'>&laquo; Previous Round</a>";
+          if(currentRound != totalRounds)
+              nextButton = "<a onClick='processDiscreteIncrement()' class='next'>Next Round &raquo;</a>";
+
+          roundElement.innerHTML = `
+              ${previousButton}&nbsp;&nbsp;&nbsp;&nbsp;Round: ${currentRound}/${totalRounds}&nbsp;&nbsp;&nbsp;&nbsp;${nextButton}
+          `;
+
+          return 0;
+      }
+
+      function processDiscreteDecrement() {
+          discreteCurrentRound = `${discreteCurrentRound.split("_")[0]}_${parseInt(discreteCurrentRound.split("_")[1]) - 1}`;
+          processDiscrete(allResultsMap[discreteCurrentRound], false);
+      }
+
+      function processDiscreteIncrement() {
+          discreteCurrentRound = `${discreteCurrentRound.split("_")[0]}_${parseInt(discreteCurrentRound.split("_")[1]) + 1}`;
+          processDiscrete(allResultsMap[discreteCurrentRound], false);
       }
 
       var latest_version = -1;
@@ -646,6 +714,5 @@
     </script>
 
     <h2 id="round">Round: 0</h2>
-
   </body>
 </html>
