@@ -722,6 +722,8 @@ public class Simulator {
 		Map<Integer, Integer> numRoundWinsMap = new HashMap<>();
 		Map<Integer, Integer> numRoundLossesMap = new HashMap<>();
 		Map<Integer, Integer> numRoundDrawsMap = new HashMap<>();
+		Map<Integer, Integer> numCumulativeGoalsForMap = new HashMap<>();
+		Map<Integer, Integer> numCumulativeGoalsAgainstMap = new HashMap<>();
 		
 		for(int gameRound : allGamesMap.keySet()) {
 			if(gameRound == 0)
@@ -734,6 +736,10 @@ public class Simulator {
 					numCumulativeDrawsMap.put(teamID, 0);
 				if(!numCumulativeLossesMap.containsKey(teamID))
 					numCumulativeLossesMap.put(teamID, 0);
+				if(!numCumulativeGoalsForMap.containsKey(teamID))
+					numCumulativeGoalsForMap.put(teamID, 0);
+				if(!numCumulativeGoalsAgainstMap.containsKey(teamID))
+					numCumulativeGoalsAgainstMap.put(teamID, 0);
 				for(Game game : allGamesMap.get(gameRound).get(teamID)) {
 					if(Player.hasWonGame(game))
 						numCumulativeWinsMap.put(teamID, numCumulativeWinsMap.get(teamID) + 1);
@@ -741,18 +747,21 @@ public class Simulator {
 						numCumulativeDrawsMap.put(teamID, numCumulativeDrawsMap.get(teamID) + 1);
 					else if(Player.hasLostGame(game))
 						numCumulativeLossesMap.put(teamID, numCumulativeLossesMap.get(teamID) + 1);
+
+					numCumulativeGoalsForMap.put(teamID, numCumulativeGoalsForMap.get(teamID) + game.getNumPlayerGoals());
+					numCumulativeGoalsAgainstMap.put(teamID, numCumulativeGoalsAgainstMap.get(teamID) + game.getNumOpponentGoals());
 				}
 			}
 		}
 		
-		for(int teamID : allGamesMap.get(round).keySet()) {
+		for(int teamID : roundGamesMap.keySet()) {
 			if(!numRoundWinsMap.containsKey(teamID))
 				numRoundWinsMap.put(teamID, 0);
 			if(!numRoundDrawsMap.containsKey(teamID))
 				numRoundDrawsMap.put(teamID, 0);
 			if(!numRoundLossesMap.containsKey(teamID))
 				numRoundLossesMap.put(teamID, 0);
-			for(Game game : allGamesMap.get(round).get(teamID)) {
+			for(Game game : roundGamesMap.get(teamID)) {
 				if(Player.hasWonGame(game))
 					numRoundWinsMap.put(teamID, numRoundWinsMap.get(teamID) + 1);
 				else if(Player.hasDrawnGame(game))
@@ -775,6 +784,8 @@ public class Simulator {
 		JSONObject numCumulativeWinsJSONObj = new JSONObject();
 		JSONObject numCumulativeDrawsJSONObj = new JSONObject();
 		JSONObject numCumulativeLossesJSONObj = new JSONObject();
+		JSONObject numCumulativeGoalsForJSONObj = new JSONObject();
+		JSONObject numCumulativeGoalsAgainstJSONObj = new JSONObject();		
 		JSONObject numRoundWinsJSONObj = new JSONObject();
 		JSONObject numRoundDrawsJSONObj = new JSONObject();
 		JSONObject numRoundLossesJSONObj = new JSONObject();
@@ -798,17 +809,20 @@ public class Simulator {
 				teamGamesJSONObj.put(playerWrappers.get(gameID - 1).getPlayerName(), teamGamesNestedJSONObj);
 			}
 			
-			roundGamesJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), teamGamesJSONObj);
-			roundPointsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), Integer.parseInt(roundPointsMap.get(teamID).toString()));
-			roundCumulativePointsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), Integer.parseInt(roundCumulativePointsMap.get(teamID).toString()));
-		  	roundRankingsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), rankFormat.format(roundRankingsMap.get(teamID)));
-		  	numCumulativeWinsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), numCumulativeWinsMap.get(teamID));
-		  	numCumulativeDrawsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), numCumulativeDrawsMap.get(teamID));
-		  	numCumulativeLossesJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), numCumulativeLossesMap.get(teamID));
-		  	numRoundWinsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), numRoundWinsMap.get(teamID));
-		  	numRoundDrawsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), numRoundDrawsMap.get(teamID));
-		  	numRoundLossesJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), numRoundLossesMap.get(teamID));
-		  	roundAverageRankingsJSONObj.put(playerWrappers.get(teamID - 1).getPlayerName(), rankFormat.format(roundAverageRankingsMap.get(teamID)));
+			String playerName = playerWrappers.get(teamID - 1).getPlayerName();
+			roundGamesJSONObj.put(playerName, teamGamesJSONObj);
+			roundPointsJSONObj.put(playerName, Integer.parseInt(roundPointsMap.get(teamID).toString()));
+			roundCumulativePointsJSONObj.put(playerName, Integer.parseInt(roundCumulativePointsMap.get(teamID).toString()));
+		  	roundRankingsJSONObj.put(playerName, rankFormat.format(roundRankingsMap.get(teamID)));
+		  	numCumulativeWinsJSONObj.put(playerName, numCumulativeWinsMap.get(teamID));
+		  	numCumulativeDrawsJSONObj.put(playerName, numCumulativeDrawsMap.get(teamID));
+		  	numCumulativeLossesJSONObj.put(playerName, numCumulativeLossesMap.get(teamID));
+		  	numRoundWinsJSONObj.put(playerName, numRoundWinsMap.get(teamID));
+		  	numRoundDrawsJSONObj.put(playerName, numRoundDrawsMap.get(teamID));
+		  	numRoundLossesJSONObj.put(playerName, numRoundLossesMap.get(teamID));
+		  	numCumulativeGoalsForJSONObj.put(playerName, numCumulativeGoalsForMap.get(teamID));
+		  	numCumulativeGoalsAgainstJSONObj.put(playerName, numCumulativeGoalsAgainstMap.get(teamID));
+		  	roundAverageRankingsJSONObj.put(playerName, rankFormat.format(roundAverageRankingsMap.get(teamID)));
 		}
 		for(Integer teamID : orderedRoundRankingsMap.keySet()) {
 			JSONObject orderedRoundRankingsJSONObj = new JSONObject();
@@ -830,6 +844,8 @@ public class Simulator {
 		jsonObj.put("cumulativeWins", numCumulativeWinsJSONObj);
 		jsonObj.put("cumulativeDraws", numCumulativeDrawsJSONObj);
 		jsonObj.put("cumulativeLosses", numCumulativeLossesJSONObj);
+		jsonObj.put("cumulativeGoalsFor", numCumulativeGoalsForJSONObj);
+		jsonObj.put("cumulativeGoalsAgainst", numCumulativeGoalsAgainstJSONObj);
 		jsonObj.put("roundWins", numRoundWinsJSONObj);
 		jsonObj.put("roundDraws", numRoundDrawsJSONObj);
 		jsonObj.put("roundLosses", numRoundLossesJSONObj);

@@ -319,6 +319,8 @@
               var cumulativePoints = result.cumulativePoints;
               var averageRankings = result.averageRankings;
               var teams = Object.keys(cumulativePoints).sort(sortAlphaNumeric);
+              var cumulativeGoalsFor = result.cumulativeGoalsFor;
+              var cumulativeGoalsAgainst = result.cumulativeGoalsAgainst;
 
               var rows = [];
               for(var team of teams)
@@ -342,7 +344,9 @@
               chart.tooltip().fontColor("white");
               chart.tooltip().format(function(e) {
                 return `${this.seriesName}: ${this.value}\n
-                        Average Ranking: ${averageRankings[this.x]}`;
+                        Average Ranking: ${averageRankings[this.x]}\n
+                        Team's Goals: ${cumulativeGoalsFor[this.x]}\n
+                        Opponents' Goals: ${cumulativeGoalsAgainst[this.x]}`;
               });
               
               chart.hovered().labels(true);
