@@ -96,7 +96,7 @@
         background-color: black;
         border: 1px solid black;
         position: relative;
-        font-size: 20px;
+        font-size: 25px;
         text-align: center;
         color: white;
       }
@@ -109,18 +109,20 @@
       }
 
       td, th {
-        text-align: left;
+        text-align: center;
         padding: 8px;
       }
 
       tr:nth-child(even) {
         background-color: #444444;
         color: white;
+        text-align: center;
       }
 
       tr:nth-child(odd) {
         background-color: black;
         color: white;
+        text-align: center
       }
 
       .previous, .next {
@@ -208,7 +210,7 @@
           var orderedDistinctRanks = Array.from(new Set(allRanks)).sort((a, b) => a - b);
 
           if(orderedAverageRankings.length <= 3) {
-              finalRankHTML = `
+              var finalRankHTML = `
                   <table style="font-size:15px">
                       <tr>
                           <th>${rankType} Rank</th>
@@ -242,11 +244,12 @@
               }
           }
           else {
-              finalRankHTML = `
+              var tableBarrierStyle = "border-right:3px solid red;";
+              var finalRankHTML = `
                   <table style="font-size:15px">
                       <tr>
                           <th>${rankType} Rank</th>
-                          <th>Team</th>
+                          <th style="${tableBarrierStyle}">Team</th>
                           <th>${rankType} Rank</th>
                           <th>Team</th>
                       </tr>`;
@@ -274,26 +277,26 @@
                       for(var i = 0; i < Math.min(orderedDistinctRanks.length, 3); i++) {
                           var topRank = orderedDistinctRanks[i];                          
                           if(rankingCol1 == topRank && i == 0)
-                              styleCol1 = "style='background-color:gold; color:black;'";
+                              styleCol1 = "background-color:gold; color:black;";
                           else if(rankingCol1 == topRank && i == 1)
-                              styleCol1 = "style='background-color:silver; color:black;'";
+                              styleCol1 = "background-color:silver; color:black;";
                           else if(rankingCol1 == topRank && i == 2)
-                              styleCol1 = "style='background-color:#cd7f32;'";
+                              styleCol1 = "background-color:#cd7f32;";
                           
                           if(rankingCol2 == topRank && i == 1)
-                              styleCol2 = "style='background-color:silver; color:black;'";
+                              styleCol2 = "style='background-color:silver; color:black;";
                           else if(rankingCol2 == topRank && i == 2)
-                              styleCol2 = "style='background-color:#cd7f32;'";
+                              styleCol2 = "background-color:#cd7f32;";
                       }
                   }
 
 
                   finalRankHTML += `
                       <tr>
-                          <td ${styleCol1}>${rankingCol1}</td>
-                          <td ${styleCol1}>${teamCol1}</td>
-                          <td ${styleCol2}>${rankingCol2}</td>
-                          <td ${styleCol2}>${teamCol2}</td>
+                          <td style="${styleCol1}">${rankingCol1}</td>
+                          <td style="${styleCol1} ${tableBarrierStyle}">${teamCol1}</td>
+                          <td style="${styleCol2}">${rankingCol2}</td>
+                          <td style="${styleCol2}">${teamCol2}</td>
                       </tr>
                   `;
               }
@@ -450,25 +453,25 @@
       function roundGameGrid(result) {
 
           var victoryShades = [
-              "#00B800",
-              "#00AA00",
-              "#009C00",
-              "#008E00",
-              "green",
-              "#007200",
-              "darkgreen",
-              "#003300"
+              "#00ff00",
+              "#00e000",
+              "#00c000",
+              "#00a000",
+              "#008000",
+              "#006000",
+              "#004000",
+              "#002000"
           ];
           var drawShade = "darkorange";
           var lossShades = [
-              "red",
-              "#EB0000",
-              "#D80000",
-              "#C50000",
-              "#B10000",
-              "#980000",
-              "darkred",
-              "#780000"
+              "#ff0000",
+              "#e00000",
+              "#c00000",
+              "#a00000",
+              "#800000",
+              "#600000",
+              "#400000",
+              "#200000"
           ];
 
           var games = result.games;
@@ -536,6 +539,7 @@
                   else
                       cell.style.backgroundColor = drawShade;
 
+                  cell.style.fontWeight = "bold";
                   cell.innerText = playerGoals;
                   container.appendChild(cell).className = "grid-item";
 
