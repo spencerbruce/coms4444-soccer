@@ -68,7 +68,7 @@ public class Simulator {
 		for(int i = 0; i < args.length; i++) {
             switch (args[i].charAt(0)) {
                 case '-':
-                    if(args[i].equals("-p") || args[i].equals("--players")) {
+                    if(args[i].equals("-t") || args[i].equals("--teams")) {
                         while(i + 1 < args.length && args[i + 1].charAt(0) != '-') {
                             i++;
                             String playerName = args[i];

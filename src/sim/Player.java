@@ -96,6 +96,16 @@ public abstract class Player {
 		return true;
 	}
 
+    /**
+     * Reallocate player goals
+     *
+     * @param round             current round
+     * @param gameHistory       cumulative game history from all previous rounds
+     * @param playerGames       state of player games before reallocation
+     * @param opponentGamesMap  state of opponent games before reallocation (map of opponent team IDs to their games)
+     * @return                  state of player games after reallocation
+     *
+     */
     public abstract List<Game> reallocate(Integer round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap);
     
     public static boolean hasWonGame(Game game) {
