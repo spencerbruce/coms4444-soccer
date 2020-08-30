@@ -116,8 +116,8 @@ Additionally, please comment out or remove any print statements you may have inc
 #### Steps to run the simulator:
 1.  On your command line, *fork* the Git repository, and then clone the forked version. Do NOT clone the original repository.
 2.  Enter `cd coms4444-soccer/src` to enter the source folder of the repository.
-3.  Run `make compile` to generate the make file.
-4.  Update the make file with the set of teams participating in the game.
+3.  Run `make clean` and `make compile` to clean and compile the code.
+4.  Update the make file (file called `Makefile`) with the teams participating in the game, as well as with any simulator arguments.
 5.  Run one of the following:
     * `make run`: view results/rankings from the command line
     * `make gui`: view results/rankings from the GUI
