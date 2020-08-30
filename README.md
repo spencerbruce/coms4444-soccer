@@ -27,7 +27,7 @@ The project involves a retroactive soccer league. The league has 10 teams, each 
 The first round of the league, round 0, is randomized and not included in the computation of round and average ranks.
 
 ## Required Installations
-Before you can start working with the simulator and implementing your code, you will first need to set up your environment.
+Before you can start working with the simulator and implementing your code, you will first need to set up your environment. This requires both Java and Git.
 
 ### Java
 The simulator is implemented in Java, and you will be required to submit Java code for your project. To check if you have Java already installed, run `javac -version` and `java -version` for the versions of the Java Development Kit (JDK) and Java Runtime Environment (JRE), respectively.
@@ -37,7 +37,7 @@ If you do not have Java set up, you will first need to install a JDK, which prov
 * Click on the installer link corresponding to your OS.
 * Check the box to accept the license agreement, and click the download button.
 * Once the installer has been downloaded, start the installer and complete the steps.
-* Depending on your OS, you might need to set up some environment variables to run Java. This is especially true for Windows and Linux. As a recommendation, follow the instructions [here]([https://www3.ntu.edu.sg/home/ehchua/programming/howto/JDK_Howto.html](https://www3.ntu.edu.sg/home/ehchua/programming/howto/JDK_Howto.html)) to finish the Java environment setup for your OS (note that the website also has full step-by-step instructions that you can follow to install the JDK for your OS).
+* Depending on your OS, you might need to set up some environment variables to run Java. This is especially true for Windows and Linux. As a recommendation, follow the instructions [here](https://www3.ntu.edu.sg/home/ehchua/programming/howto/JDK_Howto.html) to finish the Java environment setup for your OS (note that the website also has full step-by-step instructions that you can follow to install the JDK for your OS).
 * Verify now that you have your JDK and JRE set up by rerunning `javac -version` and `java -version`.
 
 You are now ready to start writing Java code!
