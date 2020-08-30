@@ -149,6 +149,8 @@ Examples:
 
 ## GUI Features
 
+The GUI for this project is located in `statics/webpage.html`.
+
 ### Modes
 There are two modes available for the GUI:  *discrete* and *continuous*.
 * __Discrete Mode__: this mode allows for running rounds manually on a frame-by-frame basis; this is preferable for visual analysis. To run discrete mode, add the `-d` or `--discrete` flag to the `make gui` command.
