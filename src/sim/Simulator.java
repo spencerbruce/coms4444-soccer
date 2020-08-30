@@ -28,22 +28,24 @@ import org.json.JSONObject;
 
 public class Simulator {
 	
+	// Simulator structures
 	private static GameHistory gameHistory;
 	private static List<PlayerWrapper> playerWrappers;
 	private static List<String> playerNames, playerNamesWithDuplicates;
 	private static Integer[][] randomGameGrid;
 	private static Random random;
 	
-	// Constants
+	// Simulator inputs
 	private static int seed = 10;
 	private static int rounds = 10;
 	private static double fpm = 15;
-	
-	private static int currentRound = 0;
-	private static long timeout = 1000;
 	private static boolean showGUI = false;
 	private static boolean continuousGUI = true;
 	private static boolean exportCSV = false;
+	
+	// Defaults
+	private static int currentRound = 0;
+	private static long timeout = 1000;
 	private static String version = "1.0";
 	private static String projectPath, sourcePath, staticsPath, csvPath;
     
@@ -184,7 +186,7 @@ public class Simulator {
 			if(currentRound == 0) {   // Round 0: simulator game randomization
 				generateRandomGameGrid();
 				for(PlayerWrapper playerWrapper : playerWrappers) {
-					int playerTeamID = playerWrapper.getPlayer().getID();
+					int playerTeamID = playerWrapper.getPlayer().teamID;
 					List<Game> randomPlayerGames = assignGamesToPlayer(playerWrapper);
 					roundGamesMap.put(playerTeamID, randomPlayerGames);
 				}
@@ -192,13 +194,13 @@ public class Simulator {
 			}
 			else {   // Reallocation rounds
 				for(PlayerWrapper playerWrapper : playerWrappers) {
-					int playerTeamID = playerWrapper.getPlayer().getID();
+					int playerTeamID = playerWrapper.getPlayer().teamID;
 					int previousRound = currentRound - 1;
 					List<Game> playerGames = gameHistory.getAllGamesMap().get(previousRound).get(playerTeamID);
 
 					Map<Integer, List<Game>> opponentGamesMap = new HashMap<>();
 					for(PlayerWrapper opponentPlayerWrapper : playerWrappers) {
-						int opponentTeamID = opponentPlayerWrapper.getPlayer().getID();
+						int opponentTeamID = opponentPlayerWrapper.getPlayer().teamID;
 						if(playerTeamID == opponentTeamID)
 							continue;
 						List<Game> opponentGames = gameHistory.getAllGamesMap().get(previousRound).get(opponentTeamID);
@@ -281,7 +283,7 @@ public class Simulator {
 					}
 					
 					for(PlayerWrapper playerWrapper : playerWrappers) {
-						if(playerWrapper.getPlayer().getID().equals(teamID)) {
+						if(playerWrapper.getPlayer().teamID.equals(teamID)) {
 							Log.writeToVerboseLogFile(playerWrapper.getPlayerName() + "\t" + 
 											   rankFormat.format(orderedRoundRankingsMap.get(teamID)) + "\t\t" +
 											   rankFormat.format(roundAverageRankingsMap.get(teamID)) + "\t\t" +
@@ -343,7 +345,7 @@ public class Simulator {
 			}
 			
 			for(PlayerWrapper playerWrapper : playerWrappers) {
-				if(playerWrapper.getPlayer().getID().equals(teamID)) {
+				if(playerWrapper.getPlayer().teamID.equals(teamID)) {
 					Log.writeToLogFile(playerWrapper.getPlayerName() + "\t" + 
 									   rankFormat.format(finalRankingsMap.get(teamID)) + "\t\t" +
 									   finalCumulativePointsMap.get(teamID) + "\t\t" +

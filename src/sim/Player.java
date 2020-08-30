@@ -26,22 +26,6 @@ public abstract class Player {
         this.random = new Random(seed);		
 	}
 	
-	public Integer getID() {
-		return teamID;
-	}
-	
-	public Integer getNumRounds() {
-		return rounds;
-	}
-	
-	public Integer getSeed() {
-		return seed;
-	}
-	
-	public Random getRandomGenerator() {
-		return random;
-	}
-	
 	/*
 	 * Check if the following constraints are satisfied:
 	 * 
