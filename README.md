@@ -116,8 +116,8 @@ Additionally, please comment out or remove any print statements you may have inc
 #### Steps to run the simulator:
 1.  On your command line, *fork* the Git repository, and then clone the forked version. Do NOT clone the original repository.
 2.  Enter `cd coms4444-soccer/src` to enter the source folder of the repository.
-3.  Run `make compile` to generate the make file.
-4.  Update the make file with the set of teams participating in the game.
+3.  Run `make clean` and `make compile` to clean and compile the code.
+4.  Update the make file (file called `Makefile`) with the teams participating in the game, as well as with any simulator arguments.
 5.  Run one of the following:
     * `make run`: view results/rankings from the command line
     * `make gui`: view results/rankings from the GUI
@@ -125,7 +125,7 @@ Additionally, please comment out or remove any print statements you may have inc
 #### Simulator arguments:
 > **[-r | --rounds]**: number of rounds (default = 10)
 
-> **[-p | --players]**: space-separated players/teams
+> **[-t | --teams]**: space-separated teams/players
 
 > **[-s | --seed]**: seed value for random player (default = 10)
 
@@ -143,6 +143,9 @@ Additionally, please comment out or remove any print statements you may have inc
 
 > **[-f | --fpm]**: speed (frames per minute) of GUI when continuous GUI is enabled (default = 15)
 
+Examples:
+* CLI only: `java -cp .:org.json.jar sim.Simulator --teams g1 g2 g3 g4 g5 g6 g7 g8 g9 g10 --rounds 100 --seed 250 --log logs/log1.txt --verbose --export game_results1.csv`
+* CLI and GUI: `java -cp .:org.json.jar sim.Simulator --teams random g2 g3 g4 g5 g6 g7 random g9 g10 --rounds 20 --seed 128 --log logs/log2.txt --export game_results2.csv --gui --discrete --fpm 30`
 
 ## GUI Features
 
