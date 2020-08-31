@@ -5,8 +5,8 @@
 
 # Class files
 *.class
-soccer/src/sim/*.class
-soccer/src/random/*.class
+src/*.class
+src/*/*.class
 
 # Bin folder
 bin/
