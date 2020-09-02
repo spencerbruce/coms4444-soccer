@@ -13,9 +13,10 @@ public class Player extends sim.Player {
      /**
       * Player constructor
       *
-      * @param teamID  team ID
-      * @param rounds  number of rounds
-      * @param seed    random seed
+      * @param teamID      team ID
+      * @param rounds      number of rounds
+      * @param seed        random seed
+      * @param simPrinter  simulation printer
       *
       */
      public Player(Integer teamID, Integer rounds, Integer seed, SimPrinter simPrinter) {
