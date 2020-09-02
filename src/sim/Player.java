@@ -10,6 +10,7 @@ public abstract class Player {
 
     public Integer teamID, rounds, seed;
     public Random random;
+    public SimPrinter simPrinter;
 
     /**
      * Player constructor
@@ -19,11 +20,12 @@ public abstract class Player {
      * @param seed    random seed
      *
      */
-	public Player(Integer teamID, Integer rounds, Integer seed) {
+	public Player(Integer teamID, Integer rounds, Integer seed, SimPrinter simPrinter) {
         this.teamID = teamID;
         this.rounds = rounds;
         this.seed = seed;
-        this.random = new Random(seed);		
+        this.random = new Random(seed);
+        this.simPrinter = simPrinter;        
 	}
 	
 	/*

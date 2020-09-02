@@ -6,6 +6,7 @@ import java.util.Map;
 
 import sim.Game;
 import sim.GameHistory;
+import sim.SimPrinter;
 
 public class Player extends sim.Player {
 
@@ -17,8 +18,8 @@ public class Player extends sim.Player {
       * @param seed    random seed
       *
       */
-     public Player(Integer teamID, Integer rounds, Integer seed) {
-    	 super(teamID, rounds, seed);
+     public Player(Integer teamID, Integer rounds, Integer seed, SimPrinter simPrinter) {
+    	 super(teamID, rounds, seed, simPrinter);
      }
      
      /**

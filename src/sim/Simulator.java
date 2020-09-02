@@ -44,8 +44,9 @@ public class Simulator {
 	private static boolean exportCSV = false;
 	
 	// Defaults
-	private static int currentRound = 0;
+	private static boolean enablePrints = false;
 	private static long timeout = 1000;
+	private static int currentRound = 0;
 	private static String version = "1.0";
 	private static String projectPath, sourcePath, staticsPath, csvPath;
     
@@ -631,9 +632,9 @@ public class Simulator {
 
         @SuppressWarnings("rawtypes")
         Class rawClass = loader.loadClass(playerName + ".Player");
-        Class[] classArgs = new Class[]{Integer.class, Integer.class, Integer.class};
+        Class[] classArgs = new Class[]{Integer.class, Integer.class, Integer.class, SimPrinter.class};
 
-        return (Player) rawClass.getDeclaredConstructor(classArgs).newInstance(teamID, rounds, seed);
+        return (Player) rawClass.getDeclaredConstructor(classArgs).newInstance(teamID, rounds, seed, new SimPrinter(enablePrints));
     }
 
 	private static long lastModified(Iterable<File> files) {
