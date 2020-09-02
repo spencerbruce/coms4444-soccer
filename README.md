@@ -68,19 +68,21 @@ import java.util.Map;
 
 import sim.Game;
 import sim.GameHistory;
+import sim.SimPrinter;
 
 public class Player extends sim.Player {
 
      /**
       * Player constructor
       *
-      * @param teamID  team ID
-      * @param rounds  number of rounds
-      * @param seed    random seed
+      * @param teamID      team ID
+      * @param rounds      number of rounds
+      * @param seed        random seed
+      * @param simPrinter  simulation printer
       *
       */
-     public Player(Integer teamID, Integer rounds, Integer seed) {
-          super(teamID, rounds, seed);
+     public Player(Integer teamID, Integer rounds, Integer seed, SimPrinter simPrinter) {
+          super(teamID, rounds, seed, simPrinter);
      }
 
      /**
@@ -109,7 +111,7 @@ You will be submitting your created team folder, which includes the implemented 
 
 To submit your code for each class and for the final deliverable of the project, you will create a pull request to merge your forked repository's *master* branch into the TA's base repository's *master* branch. The TA will merge the commits from the pull request after the deliverable deadline has passed. The base repository will be updated before the start of the next class meeting.
 
-Additionally, please comment out or remove any print statements you may have included, as flooding the console with print statements during the simulation will weaken performance and readability.
+In order to improve performance and readability of code during simulations, we would like to prevent flooding the console with print statements. Therefore, we have provided a printer called `SimPrinter` to allow for toggled printing to the console. When adding print statements for testing/debugging in your code, please make sure to use the methods in `SimPrinter` (instance available in `Player`) rather than use `System.out` statements directly. This also allows us to not require that you comment out any print statements in your code submissions.
 
 ## Simulator
 
@@ -227,6 +229,9 @@ The following provides the API available for students to use:
 	* `getLossPointValue`: returns the loss point value (default is 0).
 	* `toString`: returns the total points as a `String` object.
 	* `compareTo`: compares one `PlayerPoints` object to a second and returns whether the point total of the first is higher than, equal to, or lower than that of the second.
+6. `SimPrinter`: contains methods for toggled printing
+	* `println`: prints with cursor at start of the next line.
+	* `print`: prints with cursor at the end of the current line.
 
 Classes that are used by the simulator include:
 1. `Simulator`: the simulator and entry point for the project; manages the game history, wrappers for individual players, logging, server, and GUI state.
