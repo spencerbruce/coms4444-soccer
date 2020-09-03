@@ -53,7 +53,7 @@ public class Simulator {
 
 	private static void setup() {
 		gameHistory = new GameHistory();
-		random = new Random(seed);		
+		random = new Random(seed);
 		projectPath = new File(".").getAbsolutePath().substring(0, 
 				new File(".").getAbsolutePath().indexOf("coms4444-soccer") + "coms4444-soccer".length());
 		sourcePath = projectPath + File.separator + "src";
@@ -115,6 +115,7 @@ public class Simulator {
                         if(i == args.length) 
                             throw new IllegalArgumentException("The seed number is missing!");
                         seed = Integer.parseInt(args[i]);
+                		random = new Random(seed);
                     }
                     else if(args[i].equals("-r") || args[i].equals("--rounds")) {
                     	i++;
