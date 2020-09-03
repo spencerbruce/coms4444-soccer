@@ -107,7 +107,7 @@ public class Simulator {
                     else if(args[i].equals("-f") || args[i].equals("--fpm")) {
                     	i++;
                         if(i == args.length) 
-                            throw new IllegalArgumentException("The GUI frames per second is missing!");
+                            throw new IllegalArgumentException("The GUI frames per minute is missing!");
                         fpm = Double.parseDouble(args[i]);
                     }
                     else if(args[i].equals("-s") || args[i].equals("--seed")) {
