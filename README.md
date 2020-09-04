@@ -7,7 +7,7 @@ Course: COMS 4444 Programming and Problem Solving (Fall 2020)
 Website: http://www.cs.columbia.edu/~kar/4444f20  
 University: Columbia University  
 Instructor: Prof. Kenneth Ross  
-TAs: Aditya Sridhar, *<TA 2>*
+TAs: Aditya Sridhar
 
 ## Project Description
 
@@ -241,7 +241,7 @@ Classes that are used by the simulator include:
 5. `Log`: basic functionality to log results, with the option to enable verbose logging.
 
 ## Piazza
-If you have any questions about the project, please post them in the [Piazza forum](https://piazza.com/class/kdjd7v2b8925zz?cid=6) for the course, and an instructor will reply to them as soon as possible. Any updates to the project itself will be available on Piazza.
+If you have any questions about the project, please post them in the [Piazza forum](https://piazza.com/class/kdjd7v2b8925zz?cid=6) for the course, and an instructor will reply to them as soon as possible. Any updates to the project itself will be available in Piazza.
 
 
 ## Disclaimer
