@@ -138,7 +138,7 @@ public class Simulator {
                 try {
 					playerWrappers.add(loadPlayerWrapper(cleanName(name), name));
 				} catch (Exception e) {
-					Log.writeToLogFile("Unable to load players: " + e.getMessage());
+					Log.writeToLogFile("Unable to load player: " + e.getMessage());
 				}
 			}
 			else {
