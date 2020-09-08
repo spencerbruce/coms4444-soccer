@@ -58,7 +58,7 @@ Please follow these instructions for installing Git and forking repositories:
 
 You will be creating your own player that extends the simulator's abstract player. Please follow these steps to begin your implementation:
 1.  Enter the `coms4444-soccer/src` source directory, and create a folder called "g*x*" (where *x* is the number of your team). For example, if you are team "g5," please create a folder called "g5" in the `src` directory.
-2.  Create a class called `Player` inside your newly-created folder, and copy the following code into `Player` (the TODOs indicate all changes you need to make):
+2.  Create a Java file called `Player.java` inside your newly-created folder, and copy the following code into `Player.java` (the TODOs indicate all changes you need to make):
 
 ```
 package gx; // TODO modify the package name to reflect your team
