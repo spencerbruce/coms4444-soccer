@@ -35,8 +35,8 @@ public abstract class Player {
 	 * 1. Number of player goals should stay between 0 and the max number of goals allowed, inclusive
 	 * 2. Number of opponent goals for each game must not change
 	 * 3. Number of player goals for winning games should not increase
-	 * 4. Number of player goals for winning games should not decrease by more than half
-	 * 5. Number of player goals for losing and drawn games should not decrease
+	 * 4. Number of player goals for winning and drawn games should not decrease by more than half
+	 * 5. Number of player goals for losing games should not decrease
 	 * 6. Number of player goals added and subtracted must match
 	 * 
 	 * @param originalPlayerGames     list of original player games 
@@ -79,7 +79,7 @@ public abstract class Player {
 			int halfNumPlayerGoals = originalPlayerGame.getHalfNumPlayerGoals();
 			boolean numReallocatedPlayerGoalsLessThanHalf = 
 					reallocatedPlayerGame.getNumPlayerGoals() < (originalPlayerGame.getNumPlayerGoals() - halfNumPlayerGoals);
-			if(isOriginalWinningGame && numReallocatedPlayerGoalsLessThanHalf)
+			if((isOriginalWinningGame || isOriginalDrawnGame) && numReallocatedPlayerGoalsLessThanHalf)
 				return false;
 			
 			totalNumOriginalPlayerGoals += originalPlayerGame.getNumPlayerGoals();
@@ -87,7 +87,7 @@ public abstract class Player {
 			
 			// Constraint 5
 			boolean numPlayerGoalsDecreased = reallocatedPlayerGame.getNumPlayerGoals() < originalPlayerGame.getNumPlayerGoals();
-			if((isOriginalLosingGame || isOriginalDrawnGame) && numPlayerGoalsDecreased)
+			if(isOriginalLosingGame && numPlayerGoalsDecreased)
 				return false;
 			
 		}
