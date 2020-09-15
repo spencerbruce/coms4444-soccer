@@ -1,6 +1,7 @@
 package g4;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -45,8 +46,19 @@ public class Player extends sim.Player {
 		List<Game> wonGames = getWinningGames(playerGames);
 		List<Game> drawnGames = getDrawnGames(playerGames);
 		List<Game> lostGames = getLosingGames(playerGames);
-		
+
+		printGameList(playerGames);
+
+		System.out.println("Reallocating goals");
 		calculateBank(playerGames);
+		transferGoalsToLostGames(lostGames);
+		transferGoalsToDrawnGames(drawnGames);
+		// TODO: adjust winning games score
+
+		reallocatedPlayerGames.addAll(lostGames);
+		reallocatedPlayerGames.addAll(drawnGames);
+		// TODO: add wonGames
+		printGameList(reallocatedPlayerGames);
 		
 		return null; // TODO modify the return statement to return your list of reallocated player
 						// games
@@ -98,5 +110,57 @@ public class Player extends sim.Player {
 				losingGames.add(game.cloneGame());
 		}
 		return losingGames;
+	}
+
+	// add points from goalBank to lost games
+	private void transferGoalsToLostGames(List<Game> lostGames) {
+		sortGamesByAmountWon(lostGames);
+		for (Game game : lostGames) {
+			int lostBy = game.getNumOpponentGoals() - game.getNumPlayerGoals();
+			int goalsToAdd = lostBy + 1;
+			if (goalBank >= goalsToAdd) {
+				transferFromBank(game, goalsToAdd);
+			}
+			else {
+				transferFromBank(game, goalBank);
+			}
+		}
+	}
+
+	// add 1 point from goalBank to drawn games
+	private void transferGoalsToDrawnGames(List<Game> drawnGames) {
+		for (Game game : drawnGames) {
+			if (goalBank > 0) {
+				transferFromBank(game, 1);
+			}
+		}
+	}
+
+	/*
+	sort games by amount won (decreasing)
+	ex: [5, 3, 2, 2, 0, 0, -1, -4]
+	*/
+	private void sortGamesByAmountWon(List<Game> games) {
+		Collections.sort(games, (g1, g2) -> {
+			int g1Diff = g1.getNumPlayerGoals() - g1.getNumOpponentGoals();
+			int g2Diff = g2.getNumPlayerGoals() - g2.getNumOpponentGoals();
+			return g2Diff - g1Diff;
+		});
+	}
+
+	private void transferFromBank(Game game, int goals) {
+		goalBank -= goals;
+		int currentGoals = game.getNumPlayerGoals();
+		game.setNumPlayerGoals(currentGoals + goals);
+	}
+
+	// only used for internal testing
+	private void printGameList(List<Game> games) {
+		for (Game game : games) {
+			System.out.print(game.getID().toString() + ": ");
+			System.out.print("player: " + game.getNumPlayerGoals().toString());
+			System.out.print(", opp: " + game.getNumOpponentGoals().toString());
+			System.out.println("");
+		}
 	}
 }
