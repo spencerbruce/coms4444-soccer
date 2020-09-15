@@ -40,7 +40,7 @@ public class Player extends sim.Player {
 	 */
 	public List<Game> reallocate(Integer round, GameHistory gameHistory, List<Game> playerGames,
 			Map<Integer, List<Game>> opponentGamesMap) {
-		// TODO add your code here to reallocate player goals
+		// TODO: add your code here to reallocate player goals
 		List<Game> reallocatedPlayerGames = new ArrayList<>();
 
 		List<Game> wonGames = getWinningGames(playerGames);
@@ -49,19 +49,32 @@ public class Player extends sim.Player {
 
 		printGameList(playerGames);
 
-		System.out.println("Reallocating goals");
+		//System.out.println("Reallocating goals");
 		calculateBank(playerGames);
+		//System.out.println("Bank:" + goalBank);
 		transferGoalsToLostGames(lostGames);
 		transferGoalsToDrawnGames(drawnGames);
-		// TODO: adjust winning games score
+
+
+		// adjust winning games score
+		int goalsTakenFromWins = 0;
+		for(Game winningGame : wonGames) {    
+			goalsTakenFromWins += winningGame.getNumPlayerGoals() - winningGame.getNumOpponentGoals() - 1; 
+			winningGame.setNumPlayerGoals(winningGame.getNumOpponentGoals() + 1);
+		}
+
+		//System.out.println("Goals taken:" + goalsTakenFromWins);
 
 		reallocatedPlayerGames.addAll(lostGames);
 		reallocatedPlayerGames.addAll(drawnGames);
-		// TODO: add wonGames
+		reallocatedPlayerGames.addAll(wonGames);
 		printGameList(reallocatedPlayerGames);
 		
-		return null; // TODO modify the return statement to return your list of reallocated player
-						// games
+		// check constraints and return
+		if(checkConstraintsSatisfied(playerGames, reallocatedPlayerGames))
+			return reallocatedPlayerGames;
+			
+    	return playerGames;
 	}
 
 	/**
