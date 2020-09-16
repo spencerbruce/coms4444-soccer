@@ -44,12 +44,14 @@ public class Player extends sim.Player {
         for (Game game : playerGames) {
             int playerGoals = game.getNumPlayerGoals();
             int margin = playerGoals - game.getNumOpponentGoals();
+            // get winning games and retrieve the excess goals
             if (margin > 0) {
                 int subtract = Math.min(margin-1, game.getHalfNumPlayerGoals());
                 excessGoals += subtract;
                 game.setNumPlayerGoals(playerGoals-subtract);
                 winningGames.add(game);
             }
+            // get tied games and allocate 1 if max score hasn't yet been reached
             else if (margin == 0) {
                 if (excessGoals > 0 && playerGoals < 8) {
                     excessGoals -= 1;
@@ -57,13 +59,16 @@ public class Player extends sim.Player {
                 }
                 tieGames.add(game);
             }
+            // get losing games
             else {
                 losingGames.add(game);
             }
         }
 
+        // sort losing games by smallest margin to win
         losingGames.sort(Comparator.comparingInt(g -> (g.getNumOpponentGoals() - g.getNumPlayerGoals())));
 
+        // reallocate goals to the losing games
         for (Game game : losingGames) {
             int opponentGoals = game.getNumOpponentGoals();
             int margin = opponentGoals - game.getNumPlayerGoals();
@@ -74,6 +79,8 @@ public class Player extends sim.Player {
             reallocatedGames.add(game);
         }
 
+        // If there are extra goals left over, redistribute them to the tied games and winning games
+        // TODO: break down into helper functions
         for (Game game : tieGames) {
             int playerGoals = game.getNumPlayerGoals();
             if (excessGoals > 0 && playerGoals < 8) {
