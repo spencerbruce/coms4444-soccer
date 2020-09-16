@@ -46,49 +46,48 @@ public class Player extends sim.Player {
 		List<Game> wonGames = getWinningGames(playerGames);
 		List<Game> drawnGames = getDrawnGames(playerGames);
 		List<Game> lostGames = getLosingGames(playerGames);
+		// printGameList(playerGames);
 
-		printGameList(playerGames);
-
-		//System.out.println("Reallocating goals");
-		calculateBank(playerGames);
-		//System.out.println("Bank:" + goalBank);
+		// System.out.println("Reallocating goals");
+		calculateBank(wonGames);
+		// System.out.println(this.goalBank);
+		// System.out.println("Bank:" + goalBank);
 		transferGoalsToLostGames(lostGames);
 		transferGoalsToDrawnGames(drawnGames);
 
-
 		// adjust winning games score
 		int goalsTakenFromWins = 0;
-		for(Game winningGame : wonGames) {    
-			goalsTakenFromWins += winningGame.getNumPlayerGoals() - winningGame.getNumOpponentGoals() - 1; 
+		for (Game winningGame : wonGames) {
+			goalsTakenFromWins += winningGame.getNumPlayerGoals() - winningGame.getNumOpponentGoals() - 1;
 			winningGame.setNumPlayerGoals(winningGame.getNumOpponentGoals() + 1);
 		}
 
-		//System.out.println("Goals taken:" + goalsTakenFromWins);
+		// System.out.println("Goals taken:" + goalsTakenFromWins);
 
 		reallocatedPlayerGames.addAll(lostGames);
 		reallocatedPlayerGames.addAll(drawnGames);
 		reallocatedPlayerGames.addAll(wonGames);
-		printGameList(reallocatedPlayerGames);
-		
+		this.goalBank = 0;
 		// check constraints and return
-		if(checkConstraintsSatisfied(playerGames, reallocatedPlayerGames))
+		if (checkConstraintsSatisfied(playerGames, reallocatedPlayerGames))
 			return reallocatedPlayerGames;
-			
-    	return playerGames;
+
+		return playerGames;
 	}
 
 	/**
 	 * Calculates Goal Bank
 	 *
-	 * @param playerGames      state of player games before reallocation
+	 * @param playerGames state of player games before reallocation
 	 *
 	 */
 	private void calculateBank(List<Game> playerGames) {
 		for (Game game : playerGames) {
 			int numPlayerGoals = game.getNumPlayerGoals();
 			int numOpponentGoals = game.getNumOpponentGoals();
-			if (numPlayerGoals > numOpponentGoals)
-				this.goalBank += numPlayerGoals - numOpponentGoals - 1;
+			this.goalBank += numPlayerGoals - numOpponentGoals - 1;
+//			System.out.println(game.getID() + ": " + this.goalBank + " " + numPlayerGoals + " " + numOpponentGoals);
+
 		}
 	}
 
@@ -133,9 +132,10 @@ public class Player extends sim.Player {
 			int goalsToAdd = lostBy + 1;
 			if (goalBank >= goalsToAdd) {
 				transferFromBank(game, goalsToAdd);
-			}
-			else {
+				this.goalBank -= goalsToAdd;
+			} else {
 				transferFromBank(game, goalBank);
+				this.goalBank = 0;
 			}
 		}
 	}
@@ -145,14 +145,14 @@ public class Player extends sim.Player {
 		for (Game game : drawnGames) {
 			if (goalBank > 0) {
 				transferFromBank(game, 1);
+				this.goalBank--;
 			}
 		}
 	}
 
 	/*
-	sort games by amount won (decreasing)
-	ex: [5, 3, 2, 2, 0, 0, -1, -4]
-	*/
+	 * sort games by amount won (decreasing) ex: [5, 3, 2, 2, 0, 0, -1, -4]
+	 */
 	private void sortGamesByAmountWon(List<Game> games) {
 		Collections.sort(games, (g1, g2) -> {
 			int g1Diff = g1.getNumPlayerGoals() - g1.getNumOpponentGoals();
