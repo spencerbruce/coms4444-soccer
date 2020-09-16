@@ -34,7 +34,19 @@ public class Player extends sim.Player {
       */
      public List<Game> reallocate(Integer round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap) {
           // TODO add your code here to reallocate player goals
-          
-          return null; // TODO modify the return statement to return your list of reallocated player games
+    	  int sum = 0;
+          for (Game game: playerGames) {
+        	  sum += game.getNumPlayerGoals();
+          }
+          int numGoalsPerOpponent = sum/playerGames.size(); 
+          int overflow = sum % playerGames.size();
+          for (Game game: playerGames) {
+        	  game.setNumPlayerGoals(numGoalsPerOpponent);
+          }
+          for (int i=0; i<overflow; i++) {
+        	  Game game = playerGames.get(i);
+        	  game.setNumPlayerGoals(game.getNumPlayerGoals() + 1);
+          }
+          return playerGames; // TODO modify the return statement to return your list of reallocated player games
      }
 }
