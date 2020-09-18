@@ -1,7 +1,6 @@
 package g4;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -12,6 +11,7 @@ import sim.SimPrinter;
 public class Player extends sim.Player {
 
 	private int goalBank;
+	private final MovePredictor movePredictor;
 
 	/**
 	 * Player constructor
@@ -25,6 +25,7 @@ public class Player extends sim.Player {
 	public Player(Integer teamID, Integer rounds, Integer seed, SimPrinter simPrinter) {
 		super(teamID, rounds, seed, simPrinter);
 		this.goalBank = 0;
+		this.movePredictor = new MovePredictor(simPrinter);
 	}
 
 	/**
@@ -40,13 +41,13 @@ public class Player extends sim.Player {
 	 */
 	public List<Game> reallocate(Integer round, GameHistory gameHistory, List<Game> playerGames,
 			Map<Integer, List<Game>> opponentGamesMap) {
-		// TODO: add your code here to reallocate player goals
+		//pointPredictor.trackData(opponentGamesMap);
+
 		List<Game> reallocatedPlayerGames = new ArrayList<>();
 
 		List<Game> wonGames = getWinningGames(playerGames);
 		List<Game> drawnGames = getDrawnGames(playerGames);
 		List<Game> lostGames = getLosingGames(playerGames);
-		// printGameList(playerGames);
 
 		// System.out.println("Reallocating goals");
 		calculateBank(wonGames);
@@ -154,7 +155,7 @@ public class Player extends sim.Player {
 	 * sort games by amount won (decreasing) ex: [5, 3, 2, 2, 0, 0, -1, -4]
 	 */
 	private void sortGamesByAmountWon(List<Game> games) {
-		Collections.sort(games, (g1, g2) -> {
+		games.sort((g1, g2) -> {
 			int g1Diff = g1.getNumPlayerGoals() - g1.getNumOpponentGoals();
 			int g2Diff = g2.getNumPlayerGoals() - g2.getNumOpponentGoals();
 			return g2Diff - g1Diff;
@@ -170,10 +171,10 @@ public class Player extends sim.Player {
 	// only used for internal testing
 	private void printGameList(List<Game> games) {
 		for (Game game : games) {
-			System.out.print(game.getID().toString() + ": ");
-			System.out.print("player: " + game.getNumPlayerGoals().toString());
-			System.out.print(", opp: " + game.getNumOpponentGoals().toString());
-			System.out.println("");
+			simPrinter.print(game.getID().toString() + ": <= GAME ID ");
+			simPrinter.print("player: " + game.getNumPlayerGoals().toString());
+			simPrinter.print(", opp: " + game.getNumOpponentGoals().toString());
+			simPrinter.println();
 		}
 	}
 }
