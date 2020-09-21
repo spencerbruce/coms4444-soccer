@@ -64,7 +64,7 @@ public class Player extends sim.Player {
                     rankedMap.put(gameHistory.getAllGamesMap().get(round - 1).get(teamID).get(i).getID(),(Math.abs(ourRank-opoRank)));
                     rankedMapS.put(gameHistory.getAllGamesMap().get(round - 1).get(teamID).get(i).getID(),gameHistory.getAllGamesMap().get(round - 1).get(teamID).get(i).getScoreAsString());
                }
-               System.out.println(rankedMapS);
+               //System.out.println(rankedMapS);
                //System.out.println(gameHistory.getAllGamesMap().get(round - 1).get(teamID).get(8).getNumOpponentGoals());
           }
 
@@ -88,14 +88,13 @@ public class Player extends sim.Player {
 
           Collections.sort(wonGames, rangeComparatorWon.reversed());
 
-
           if(round > rounds/4) {
                Collections.sort(lostOrDrawnGamesWithReallocationCapacity, rangeComparatorRank.reversed());
           }
 
           int i = 0;
           for(Game lossOrDrew : lostOrDrawnGamesWithReallocationCapacity) {
-               System.out.println(lossOrDrew.getID() + " " + lossOrDrew.getScoreAsString());
+               //System.out.println(lossOrDrew.getID() + " " + lossOrDrew.getScoreAsString());
                int rangeWon = Math.min((wonGames.get(i).getNumPlayerGoals()-wonGames.get(i).getNumOpponentGoals()),
                        wonGames.get(i).getHalfNumPlayerGoals());
                int rangeLD = lossOrDrew.getNumOpponentGoals() - lossOrDrew.getNumPlayerGoals();
@@ -108,10 +107,11 @@ public class Player extends sim.Player {
           }
 
           Collections.sort(lostOrDrawnGamesWithReallocationCapacity, rangeComparatorWon);
+          Collections.sort(wonGames, rangeComparatorWon.reversed());
 
           i = 0;
           for(Game lossOrDrew : lostOrDrawnGamesWithReallocationCapacity) {
-               System.out.println(lossOrDrew.getID() + " " + lossOrDrew.getScoreAsString());
+               //System.out.println(lossOrDrew.getID() + " " + lossOrDrew.getScoreAsString());
                int rangeWon = Math.min((wonGames.get(i).getNumPlayerGoals()-wonGames.get(i).getNumOpponentGoals()),
                        wonGames.get(i).getHalfNumPlayerGoals());
                int rangeLD = lossOrDrew.getNumOpponentGoals() - lossOrDrew.getNumPlayerGoals();
