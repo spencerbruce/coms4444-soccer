@@ -53,12 +53,12 @@ public class Player extends sim.Player {
 
           // if it was a draw, either remove all points or do not remove any and hope the opponent removes points
           
-          // return null; // TODO modify the return statement to return your list of reallocated player games
 
              // strategy for future deliverable? vvv
           //sort by won games how much we won by
 		//sort lost games by how much we lost by
-		//match these up
+          //match these up
+          // apparently we don't have access to who we played so we cannot predict how a certain team will respond to us 
 
           // if we won:
                // take away our score - opponents score + 1 so long as our score / 2 is not > this number 
@@ -86,6 +86,44 @@ public class Player extends sim.Player {
 
                //allocate to random game
 
+
+               //class 2:
+               //sort
+               //average points each other team takes away
+               //hashset int -> list<int> (margin -> list of how many the opponents changed)
+
+               //aim for x amount of points
+
+               //maximin only 2 round 
+
+
+               // sort by max margin for wins, all draws, then smallest margin for losses
+               // within each game, find the smallest point games which we won -- take away those games (sacrificial loss)
+               // we can further the sorting algorithm by adding feasibility of winning to each category ^ 
+                    // take top 6 in this sort
+                    // then starting from 6 and working up to 1, allocate goals
+
+               //how many other team has to reallocate?
+
+               //information available to us:
+
+
+               //helper methods:
+               //sort
+                    // win: biggest margin --> smallest margin
+                    // draw: lowest points --> highest points 
+                    // loss: lowest margin --> highest margin 
+               //check likelihood of win
+                    //uses opponents player stats/history 
+               //check for # of possible points in player + opponent's reallocation hand 
+               //
+
+               //methods:
+               //1. calculate what opponent is doing -> hashmap stuff
+               //2. minimax (1 opponent vs 9 opponents)?
+               //3. aim for 18 points
+               //4. minimize dead weight games
+
           for(Game winningGame : wonGames) {    		 
                
                if(lostOrDrawnGamesWithReallocationCapacity.size() == 0)
@@ -103,7 +141,10 @@ public class Player extends sim.Player {
 
 			   if(halfNumPlayerGoals > theirScore) {
 				   numRandomGoals = halfNumPlayerGoals;
-			   }
+                  }
+                  else if (ourScore == 0) {
+                       ;
+                  }
 			   else {
 				   numRandomGoals = ourScore - theirScore - 1;
 			   }
@@ -123,6 +164,10 @@ public class Player extends sim.Player {
                return reallocatedPlayerGames;
           return playerGames;
 
+     }
+
+     private List<Game> sortGames(List<Game> li) {
+          
      }
 
      // stolen from random >:D
