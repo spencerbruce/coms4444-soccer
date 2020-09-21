@@ -1,7 +1,6 @@
 package g4;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -12,7 +11,10 @@ import sim.SimPrinter;
 public class Player extends sim.Player {
 
 	private int goalBank;
-
+	private final MovePredictor movePredictor;
+	private int threshold;
+	private SimPrinter simPrinter;
+	private int teamId;
 	/**
 	 * Player constructor
 	 *
@@ -24,7 +26,11 @@ public class Player extends sim.Player {
 	 */
 	public Player(Integer teamID, Integer rounds, Integer seed, SimPrinter simPrinter) {
 		super(teamID, rounds, seed, simPrinter);
+		this.simPrinter = simPrinter;
 		this.goalBank = 0;
+		this.movePredictor = new MovePredictor(simPrinter);
+		this.threshold = 3;
+		this.teamId = teamID;
 	}
 
 	/**
@@ -40,16 +46,18 @@ public class Player extends sim.Player {
 	 */
 	public List<Game> reallocate(Integer round, GameHistory gameHistory, List<Game> playerGames,
 			Map<Integer, List<Game>> opponentGamesMap) {
-		// TODO: add your code here to reallocate player goals
+		//pointPredictor.trackData(opponentGamesMap);
+
 		List<Game> reallocatedPlayerGames = new ArrayList<>();
 
 		List<Game> wonGames = getWinningGames(playerGames);
 		List<Game> drawnGames = getDrawnGames(playerGames);
 		List<Game> lostGames = getLosingGames(playerGames);
-		// printGameList(playerGames);
+		List<Integer> targetTeamID = reallocateLeapFrog(round, gameHistory, playerGames, opponentGamesMap);
 
 		// System.out.println("Reallocating goals");
-		calculateBank(wonGames);
+		calculateBank(wonGames, targetTeamID.get(0), targetTeamID.get(1));
+		this.movePredictor.trackData(opponentGamesMap);
 		// System.out.println(this.goalBank);
 		// System.out.println("Bank:" + goalBank);
 		transferGoalsToLostGames(lostGames);
@@ -61,7 +69,6 @@ public class Player extends sim.Player {
 			goalsTakenFromWins += winningGame.getNumPlayerGoals() - winningGame.getNumOpponentGoals() - 1;
 			winningGame.setNumPlayerGoals(winningGame.getNumOpponentGoals() + 1);
 		}
-
 		// System.out.println("Goals taken:" + goalsTakenFromWins);
 
 		reallocatedPlayerGames.addAll(lostGames);
@@ -75,13 +82,39 @@ public class Player extends sim.Player {
 		return playerGames;
 	}
 
+	public List<Integer> reallocateLeapFrog(Integer round, GameHistory gameHistory, List<Game> playerGames,
+			Map<Integer, List<Game>> opponentGamesMap) {
+			Map<Integer, Double> currentAverages = gameHistory.getAllAverageRankingsMap().get(round);
+			double nextSmallest = Integer.MAX_VALUE;
+			int nextSmallestId = 0;
+			double nextLargest = Integer.MIN_VALUE;
+			int nextLargestId = 0;
+			double currentTeam = currentAverages.get(this.teamId);
+			for(Map.Entry<Integer, Double> entry : currentAverages.entrySet()){
+				if(entry.getValue() <= currentTeam){
+					if(nextSmallest > entry.getValue() && entry.getKey() != this.teamId){
+						nextSmallest = entry.getValue();
+					}
+				} else {
+					if(nextLargest < entry.getValue() && entry.getKey() != this.teamId){
+						nextLargest = entry.getValue();
+					}
+				}
+				this.simPrinter.println(entry.getValue());
+			}
+			List<Integer> teams = new ArrayList<Integer>();
+			teams.add(nextLargestId);
+			teams.add(nextSmallestId);
+			return teams;
+	}
+
 	/**
 	 * Calculates Goal Bank
 	 *
 	 * @param playerGames state of player games before reallocation
 	 *
 	 */
-	private void calculateBank(List<Game> playerGames) {
+	private void calculateBank(List<Game> playerGames, int target1, int target2) {
 		for (Game game : playerGames) {
 			int numPlayerGoals = game.getNumPlayerGoals();
 			int numOpponentGoals = game.getNumOpponentGoals();
@@ -154,7 +187,7 @@ public class Player extends sim.Player {
 	 * sort games by amount won (decreasing) ex: [5, 3, 2, 2, 0, 0, -1, -4]
 	 */
 	private void sortGamesByAmountWon(List<Game> games) {
-		Collections.sort(games, (g1, g2) -> {
+		games.sort((g1, g2) -> {
 			int g1Diff = g1.getNumPlayerGoals() - g1.getNumOpponentGoals();
 			int g2Diff = g2.getNumPlayerGoals() - g2.getNumOpponentGoals();
 			return g2Diff - g1Diff;
@@ -170,10 +203,10 @@ public class Player extends sim.Player {
 	// only used for internal testing
 	private void printGameList(List<Game> games) {
 		for (Game game : games) {
-			System.out.print(game.getID().toString() + ": ");
-			System.out.print("player: " + game.getNumPlayerGoals().toString());
-			System.out.print(", opp: " + game.getNumOpponentGoals().toString());
-			System.out.println("");
+			simPrinter.print(game.getID().toString() + ": <= GAME ID ");
+			simPrinter.print("player: " + game.getNumPlayerGoals().toString());
+			simPrinter.print(", opp: " + game.getNumOpponentGoals().toString());
+			simPrinter.println();
 		}
 	}
 }
