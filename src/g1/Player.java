@@ -251,6 +251,7 @@ public class Player extends sim.Player {
                int margin = playerGoals - winningGame.getNumOpponentGoals();
                // randomize whether we are leaving a margin of 1 or 2 on the win
                int subtractedGoals = Math.min(this.random.nextInt(2) + margin - 2, winningGame.getHalfNumPlayerGoals());
+               subtractedGoals = Math.max(subtractedGoals,0);
                System.out.println("Subtracted goals: " + subtractedGoals);
                excessGoals += subtractedGoals;
                winningGame.setNumPlayerGoals(playerGoals - subtractedGoals);
@@ -279,7 +280,7 @@ public class Player extends sim.Player {
                
                // distribute goals once for many losses, randomizing the amount 
                if (excessGoals > 0 && playerGoals < 8) {
-                    excessGoals += addedGoals;
+                    excessGoals -= addedGoals;
                     System.out.println("Added goals to loss: " + addedGoals);
                     lostGame.setNumPlayerGoals(playerGoals + addedGoals);
                }
@@ -290,6 +291,7 @@ public class Player extends sim.Player {
 
           if(checkConstraintsSatisfied(playerGames, reallocatedPlayerGames))
                return reallocatedPlayerGames;
+          System.out.println("Did NOT satisfy constraints");
           return playerGames;
      }
 
