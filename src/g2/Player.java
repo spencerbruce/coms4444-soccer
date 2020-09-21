@@ -34,6 +34,8 @@ public class Player extends sim.Player {
      public List<Game> reallocate(Integer round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap) {
 
           List<Game> reallocatedPlayerGames = new ArrayList<>();
+          Map<Integer, Double> rankedMap = new HashMap<Integer, Double>();
+          Map<Integer, String> rankedMapS = new HashMap<Integer, String>();
 
           List<Game> wonGames = getWinningGames(playerGames);
           List<Game> drawnGames = getDrawnGames(playerGames);
@@ -41,27 +43,82 @@ public class Player extends sim.Player {
 
           List<Game> lostOrDrawnGamesWithReallocationCapacity = new ArrayList<>(lostGames);
           lostOrDrawnGamesWithReallocationCapacity.addAll(drawnGames);
-          for(Game lostGame : lostGames)
-               if(lostGame.maxPlayerGoalsReached())
+          for(Game lostGame : lostGames) {
+               if (lostGame.maxPlayerGoalsReached()) {
                     lostOrDrawnGamesWithReallocationCapacity.remove(lostGame);
-          for(Game drawnGame : drawnGames)
-               if(drawnGame.maxPlayerGoalsReached())
+               }
+          }
+          for(Game drawnGame : drawnGames) {
+               if (drawnGame.maxPlayerGoalsReached()) {
                     lostOrDrawnGamesWithReallocationCapacity.remove(drawnGame);
+               }
+          }
 
-          Comparator<Game> rangeComparator = (Game g1, Game g2) ->
+          if(!gameHistory.getAllGamesMap().isEmpty() && !gameHistory.getAllAverageRankingsMap().isEmpty()) {
+               List<Double> averageRank = new ArrayList<Double>(gameHistory.getAllAverageRankingsMap().get(round-1).values());
+               for(int i = 0; i < 9; i++) {
+                    int opoID = i;
+                    if(i >= teamID) opoID = opoID + 1;
+                    Double opoRank = averageRank.get(opoID);
+                    Double ourRank = averageRank.get(teamID);
+                    rankedMap.put(gameHistory.getAllGamesMap().get(round - 1).get(teamID).get(i).getID(),(Math.abs(ourRank-opoRank)));
+                    rankedMapS.put(gameHistory.getAllGamesMap().get(round - 1).get(teamID).get(i).getID(),gameHistory.getAllGamesMap().get(round - 1).get(teamID).get(i).getScoreAsString());
+               }
+               //System.out.println(rankedMapS);
+               //System.out.println(gameHistory.getAllGamesMap().get(round - 1).get(teamID).get(8).getNumOpponentGoals());
+          }
+
+//          if(!gameHistory.getAllAverageRankingsMap().isEmpty()) {
+//
+//               List<Double> averageRank = new ArrayList<Double>(gameHistory.getAllAverageRankingsMap().get(round-1).values());
+//
+//
+//               System.out.println(averageRank);
+//
+//               //Collections.sort(averageRank);
+//
+//               System.out.println(averageRank);
+//               System.out.println(gameHistory.getAllAverageRankingsMap().get(round-1));
+//          }
+
+          Comparator<Game> rangeComparatorWon = (Game g1, Game g2) ->
           {return (g1.getNumPlayerGoals()-g1.getNumOpponentGoals()) - (g2.getNumPlayerGoals()-g2.getNumOpponentGoals());};
+          Comparator<Game> rangeComparatorRank = (Game g1, Game g2) ->
+          {return (int) Math.round((rankedMap.get(g1.getID()) - rankedMap.get(g2.getID()))*1000);};
 
-          Collections.sort(wonGames, rangeComparator.reversed());
-          Collections.sort(lostOrDrawnGamesWithReallocationCapacity, rangeComparator);
+          Collections.sort(wonGames, rangeComparatorWon.reversed());
+
+          if(round > rounds/4) {
+               Collections.sort(lostOrDrawnGamesWithReallocationCapacity, rangeComparatorRank.reversed());
+          }
 
           int i = 0;
           for(Game lossOrDrew : lostOrDrawnGamesWithReallocationCapacity) {
+               //System.out.println(lossOrDrew.getID() + " " + lossOrDrew.getScoreAsString());
                int rangeWon = Math.min((wonGames.get(i).getNumPlayerGoals()-wonGames.get(i).getNumOpponentGoals()),
                        wonGames.get(i).getHalfNumPlayerGoals());
                int rangeLD = lossOrDrew.getNumOpponentGoals() - lossOrDrew.getNumPlayerGoals();
                if(rangeLD < rangeWon && lossOrDrew.getNumPlayerGoals() + rangeLD + 1 <= 8) {
                     lossOrDrew.setNumPlayerGoals(lossOrDrew.getNumPlayerGoals() + rangeLD + 1);
                     wonGames.get(i).setNumPlayerGoals(wonGames.get(i).getNumPlayerGoals() - rangeLD - 1);
+                    //lostOrDrawnGamesWithReallocationCapacity.remove(lossOrDrew);
+                    i += 1;
+               }
+          }
+
+          Collections.sort(lostOrDrawnGamesWithReallocationCapacity, rangeComparatorWon);
+          Collections.sort(wonGames, rangeComparatorWon.reversed());
+
+          i = 0;
+          for(Game lossOrDrew : lostOrDrawnGamesWithReallocationCapacity) {
+               //System.out.println(lossOrDrew.getID() + " " + lossOrDrew.getScoreAsString());
+               int rangeWon = Math.min((wonGames.get(i).getNumPlayerGoals()-wonGames.get(i).getNumOpponentGoals()),
+                       wonGames.get(i).getHalfNumPlayerGoals());
+               int rangeLD = lossOrDrew.getNumOpponentGoals() - lossOrDrew.getNumPlayerGoals();
+               if(rangeLD < rangeWon && lossOrDrew.getNumPlayerGoals() + rangeLD + 1 <= 8) {
+                    lossOrDrew.setNumPlayerGoals(lossOrDrew.getNumPlayerGoals() + rangeLD + 1);
+                    wonGames.get(i).setNumPlayerGoals(wonGames.get(i).getNumPlayerGoals() - rangeLD - 1);
+                    //lostOrDrawnGamesWithReallocationCapacity.remove(lossOrDrew);
                     i += 1;
                }
           }
