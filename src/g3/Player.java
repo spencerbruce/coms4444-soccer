@@ -1,7 +1,6 @@
 package g3;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import sim.Game;
 import sim.GameHistory;
@@ -33,20 +32,116 @@ public class Player extends sim.Player {
       *
       */
      public List<Game> reallocate(Integer round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap) {
-          // TODO add your code here to reallocate player goals
-    	  int sum = 0;
-          for (Game game: playerGames) {
-        	  sum += game.getNumPlayerGoals();
+
+          List<Game> reallocatedPlayerGames = new ArrayList<>();
+
+          List<Game> wonGames = getWinningGames(playerGames);
+          List<Game> drawnGames = getDrawnGames(playerGames);
+          List<Game> lostGames = getLosingGames(playerGames);
+
+          int extraGoals = 0;
+
+          // For won games, leave at least 2 buffer goals
+          int bufferWinGoals = 2;
+          for (Game game : wonGames) {
+               int goalsDifference = game.getNumPlayerGoals() - game.getNumOpponentGoals();
+
+               if (goalsDifference > bufferWinGoals) {
+                    if (goalsDifference - bufferWinGoals > game.getHalfNumPlayerGoals()) {
+                         extraGoals += game.getHalfNumPlayerGoals();
+                         game.setNumPlayerGoals(game.getNumPlayerGoals() - game.getHalfNumPlayerGoals());
+                    }
+                    else {
+                         extraGoals += goalsDifference - bufferWinGoals;
+                         game.setNumPlayerGoals(game.getNumOpponentGoals() + bufferWinGoals);
+                    }
+
+               }
           }
-          int numGoalsPerOpponent = sum/playerGames.size(); 
-          int overflow = sum % playerGames.size();
-          for (Game game: playerGames) {
-        	  game.setNumPlayerGoals(numGoalsPerOpponent);
+
+          // For games won with 1 goal difference, take away half the goals
+          for (Game game : wonGames) {
+               int goalsDifference = game.getNumPlayerGoals() - game.getNumOpponentGoals();
+
+               if (goalsDifference == 1) {
+                    extraGoals += game.getHalfNumPlayerGoals();
+                    game.setNumPlayerGoals(game.getNumPlayerGoals() - game.getHalfNumPlayerGoals());
+               }
           }
-          for (int i=0; i<overflow; i++) {
-        	  Game game = playerGames.get(i);
-        	  game.setNumPlayerGoals(game.getNumPlayerGoals() + 1);
+
+          // For drawn games, first allocate half of all goals to extraGoals
+          for (Game game : drawnGames) {
+               extraGoals += game.getHalfNumPlayerGoals();
+               game.setNumPlayerGoals(game.getNumPlayerGoals() - game.getHalfNumPlayerGoals());
           }
-          return playerGames; // TODO modify the return statement to return your list of reallocated player games
+
+          // Allocate all points to lost games
+          // First, sort lost games by the margin needed to win
+          Collections.sort(lostGames, new Comparator<Game>() {
+               @Override
+               public int compare(Game g1, Game g2) {
+                    int g1Margin = g1.getNumOpponentGoals() - g1.getNumPlayerGoals();
+                    int g2Margin = g2.getNumOpponentGoals() - g2.getNumPlayerGoals();
+
+                    return g1Margin - g2Margin;
+               }
+          });
+
+          for (Game game : lostGames) {
+               if (extraGoals > 0) {
+                    int margin = game.getNumOpponentGoals() - game.getNumPlayerGoals() + 1;
+
+                    if (extraGoals >= margin) {
+                         extraGoals -= margin;
+                         game.setNumPlayerGoals(game.getNumPlayerGoals() + margin);
+                    }
+                    else {
+                         game.setNumPlayerGoals(game.getNumPlayerGoals() + extraGoals);
+                         extraGoals = 0;
+                    }
+
+               }
+          }
+
+          reallocatedPlayerGames.addAll(wonGames);
+          reallocatedPlayerGames.addAll(drawnGames);
+          reallocatedPlayerGames.addAll(lostGames);
+
+          if(checkConstraintsSatisfied(playerGames, reallocatedPlayerGames))
+               return reallocatedPlayerGames;
+          return playerGames;
+     }
+
+     private List<Game> getWinningGames(List<Game> playerGames) {
+          List<Game> winningGames = new ArrayList<>();
+          for(Game game : playerGames) {
+               int numPlayerGoals = game.getNumPlayerGoals();
+               int numOpponentGoals = game.getNumOpponentGoals();
+               if(numPlayerGoals > numOpponentGoals)
+                    winningGames.add(game.cloneGame());
+          }
+          return winningGames;
+     }
+
+     private List<Game> getDrawnGames(List<Game> playerGames) {
+          List<Game> drawnGames = new ArrayList<>();
+          for(Game game : playerGames) {
+               int numPlayerGoals = game.getNumPlayerGoals();
+               int numOpponentGoals = game.getNumOpponentGoals();
+               if(numPlayerGoals == numOpponentGoals)
+                    drawnGames.add(game.cloneGame());
+          }
+          return drawnGames;
+     }
+
+     private List<Game> getLosingGames(List<Game> playerGames) {
+          List<Game> losingGames = new ArrayList<>();
+          for(Game game : playerGames) {
+               int numPlayerGoals = game.getNumPlayerGoals();
+               int numOpponentGoals = game.getNumOpponentGoals();
+               if(numPlayerGoals < numOpponentGoals)
+                    losingGames.add(game.cloneGame());
+          }
+          return losingGames;
      }
 }
