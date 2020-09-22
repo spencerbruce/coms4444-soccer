@@ -108,6 +108,56 @@ public class Player extends sim.Player {
 			return teams;
 	}
 
+	// algorithm #2:
+	// induce losses for higher ranked teams
+	// risk losing to teams that are lower ranked
+	// don't use this algorithm when player is rank 1
+	// TODO: figure out the highest rank at which you would want to use this algorithm
+	// TODO: figure out hows many teams above you want to attack (1 at the moment)
+	// TODO: figure out hows many teams below you are willing to lose against (1 at the moment)
+	public List<Game> reallocateAttackHigherRanks(Integer round, GameHistory gameHistory, List<Game> playerGames,
+			Map<Integer, List<Game>> opponentGamesMap) {
+			
+			List<Game> reallocatedPlayerGames = new ArrayList<>();
+			List<Game> wonGames = getWinningGames(playerGames);
+			List<Game> drawnGames = getDrawnGames(playerGames);
+			List<Game> lostGames = getLosingGames(playerGames);
+			
+			Double highestRank = Double.MIN_VALUE;
+			Double lowestRank = Double.MAX_VALUE;
+			Map<Integer, Double> currentAverages = gameHistory.getAllAverageRankingsMap().get(round);
+			List<Double> highRankedTeams = new ArrayList<Double>();
+			List<Double> lowRankedTeams = new ArrayList<Double>();
+			double playerRank = currentAverages.get(this.teamId);
+
+			int numGoalsToReallocate = 0;
+			
+			for(Map.Entry<Integer, Double> entry : currentAverages.entrySet()){
+				if(entry.getValue() < playerRank){
+					if(lowestRank > entry.getValue()){
+						lowestRank = entry.getValue();
+					}
+				} else {
+					if(highestRank < entry.getValue()){
+						highestRank = entry.getValue();
+					}
+				}
+			}
+
+			// TODO: figure out how to get scores knowing team ID
+
+			reallocatedPlayerGames.addAll(lostGames);
+			reallocatedPlayerGames.addAll(drawnGames);
+			reallocatedPlayerGames.addAll(wonGames);
+
+			// check constraints and return
+			if (checkConstraintsSatisfied(playerGames, reallocatedPlayerGames)) {
+				return reallocatedPlayerGames;
+			}
+
+			return playerGames;
+	}
+
 	/**
 	 * Calculates Goal Bank
 	 *
