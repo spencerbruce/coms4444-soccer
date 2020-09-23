@@ -180,11 +180,12 @@ public class Player extends sim.Player {
           // TODO: switch strategies X% into the total number of rounds 
           // TODO: calculate likeliness of opponent to remove points from draw, hope that they will remove and you won't need to
 
+          // WIP by spencer vv 
           //check for # of possible points in player + opponent's reallocation hand 
           // Round # --> TeamID --> Available Points
           HashMap<Integer, Map<Integer, Integer>> availableForReallocation = new HashMap();
-          this.addTeamsReallocatablePts(this.teamID, wonGames, drawnGames);
-          this.addOpponentsReallocatablePts(opponentGamesMap);
+          this.addTeamsReallocatablePts(this.teamID, round, wonGames, drawnGames);
+          this.addOpponentsReallocatablePts(opponentGamesMap, round);
           List<Game> playerGames, 
           Map<Integer, List<Game>> opponentGamesMap
           
@@ -216,6 +217,7 @@ public class Player extends sim.Player {
                     drawnGame.setNumPlayerGoals(playerGoals + addedGoals);
                }
           }
+
           System.out.println(excessGoals + " excess goals");
           // reallocate to losses if there are any left 
           for (Game lostGame : lostGames) {
@@ -225,7 +227,7 @@ public class Player extends sim.Player {
                // int addedGoals = Math.min(excessGoals, lostGame.getNumOpponentGoals() - playerGoals + 1);
                
                // distribute goals once for many losses, randomizing the amount 
-               if (excessGoals > 0 && playerGoals < 8) {
+               if (excessGoals > 0 && playerGoals < 8 && addedGoals > 0) {
                     excessGoals -= addedGoals;
                     System.out.println("Added goals to loss: " + addedGoals);
                     lostGame.setNumPlayerGoals(playerGoals + addedGoals);
@@ -237,7 +239,7 @@ public class Player extends sim.Player {
 
           if(checkConstraintsSatisfied(playerGames, reallocatedPlayerGames))
                return reallocatedPlayerGames;
-          System.out.println("Did NOT satisfy constraints");
+          System.out.println("Group 1 is breaking constraints");
           return playerGames;
      }
     
@@ -279,18 +281,29 @@ public class Player extends sim.Player {
      // by implementing this into our Win/Loss/Draw sorting
      // WIP by spencer vvv
      HashMap<Integer, Map<Integer, Integer>> availableForReallocation = new HashMap();
-     this.addTeamsReallocatablePts(this.teamID, wonGames, drawnGames);
-     this.addOpponentsReallocatablePts(opponentGamesMap);
+     this.addTeamsReallocatablePts(this.teamID, round, wonGames, drawnGames);
+          this.addOpponentsReallocatablePts(opponentGamesMap, round);
      List<Game> playerGames, 
      Map<Integer, List<Game>> opponentGamesMap
 
-     private void addTeamsReallocatablePts(Integer teamID, List<Game> wonGames, List<Game> drawnGames) {
-          with this round# and the given teamID, 
+
+     private void addTeamsReallocatablePts(Integer teamID, Integer round, List<Game> wonGames, List<Game> drawnGames) {
+          with this round# and the given teamID, calculate the available points to rallcotae using getHalf
+          availableForReallocation.put(round);
+          availableForReallocation.put
      }
 
-     private void addOpponentsReallocatablePts(Map<Integer, List<Game>> opponentGamesMap) {
+     private void addOpponentsReallocatablePts(Map<Integer, List<Game>> opponentGamesMap, Integer round) {
+          team ID -> all of their games they just played 
 
+          for every team ID  
+               using that teams list of games 
+                    get Winning games using function
+                    get drawn games using function
+               use the team ID and the won and drawn games and usse the addTeamsReallocatablePts method 
      }
+
+     
 
 
 }
