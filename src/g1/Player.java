@@ -79,7 +79,7 @@ public class Player extends sim.Player {
           }
           else {
                this.simPrinter.println("Random variable: " + rand + " --> strategy 2\n");
-               strategy1(wonGames, drawnGames, lostGames, round);
+               strategy2(wonGames, drawnGames, lostGames, round);
           }
 
           reallocatedPlayerGames.addAll(wonGames);
@@ -93,15 +93,16 @@ public class Player extends sim.Player {
      }
 
      /* strategy methods
-          - strategy 1 = sort wins from biggest margin --> smallest margin
-                              draws from highest points --> lowest points 
-                              losses from lowest margin --> highest margin 
-                         Prioritize winning draws with random variation of points 
-                         taken from wins and given to draws
-          - strategy 2 = same sort as strategy 1
-                         Prioritize trying to win losses, which means sacrificing both losses and draws 
-                         Sacrifice draws only if we have more reallocatable goals than the opponent 
-                         Still randomizing taking goals from wins
+          Randomly choose between the following two strategies:
+               - strategy 1 = sort wins from biggest margin --> smallest margin
+                                   draws from highest points --> lowest points 
+                                   losses from lowest margin --> highest margin 
+                              Prioritize winning draws with random variation of points 
+                              taken from wins and given to draws
+               - strategy 2 = same sort as strategy 1
+                              Prioritize trying to win losses, which means sacrificing both losses and draws 
+                              Sacrifice draws only if we have more reallocatable goals than the opponent 
+                              Still randomizing taking goals from wins
      
           TODO: implement multiple strategies, calcualte how successful they were and apply weights with time
           TODO: instead of randomly selecting a strategy, prioritize rank, prev # of wins, or something else
