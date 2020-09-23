@@ -273,7 +273,7 @@ public class Player extends sim.Player {
 
         if(checkConstraintsSatisfied(playerGames, reallocatedPlayerGames))
              return reallocatedPlayerGames;
-        System.out.println("Does NOT satisfy constraints");
+        System.out.println("Does NOT satisfy constraints strategy1");
         return playerGames;
      }
 
@@ -294,17 +294,18 @@ public class Player extends sim.Player {
             - (g1.getNumPlayerGoals() - g1.getNumOpponentGoals()))
        );
 
-       // as per g5's previous approach, we will reallocate goals from wins to draws in order to maximize the number of wins 
-       int excessGoals = 0;
-       for (Game winningGame : wonGames) {
-            int playerGoals = winningGame.getNumPlayerGoals();
-            int margin = playerGoals - winningGame.getNumOpponentGoals();
-            // randomize whether we are leaving a margin of 1 or 2 on the win
-            int subtractedGoals = Math.min(this.random.nextInt(2) + margin - 2, winningGame.getHalfNumPlayerGoals());
-            excessGoals += subtractedGoals;
-            System.out.println("subtractedGoals is " + subtractedGoals);
-            winningGame.setNumPlayerGoals(playerGoals - subtractedGoals);
-       }
+        // as per g5's previous approach, we will reallocate goals from wins to draws in order to maximize the number of wins 
+        int excessGoals = 0;
+        for (Game winningGame : wonGames) {
+             int playerGoals = winningGame.getNumPlayerGoals();
+             int margin = playerGoals - winningGame.getNumOpponentGoals();
+             // randomize whether we are leaving a margin of 1 or 2 on the win
+             int subtractedGoals = Math.min(this.random.nextInt(2) + margin - 2, winningGame.getHalfNumPlayerGoals());
+             subtractedGoals = Math.max(subtractedGoals,0);
+             System.out.println("Subtracted goals: " + subtractedGoals);
+             excessGoals += subtractedGoals;
+             winningGame.setNumPlayerGoals(playerGoals - subtractedGoals);
+        }
 
        System.out.println("excess goals1 is " + excessGoals);
        
@@ -331,41 +332,41 @@ public class Player extends sim.Player {
             // distrubute goals one-by-one? 
             
             // distribute goals once for many losses, randomizing the amount 
-            if (excessGoals > 0 && playerGoals < 8) {
-                 excessGoals += addedGoals;
+            if (excessGoals > 0 && playerGoals < 8 && addedGoals > 0) {
+                 excessGoals -= addedGoals;
                    System.out.println("Added goals to loss: " + addedGoals);
                  lostGame.setNumPlayerGoals(playerGoals + addedGoals);
             }
        } 
 
-               // now that we have the hopeful max # of points from the wins, we reallocate to draws 
-        for (Game drawnGame : drawnGames) {
-             int playerGoals = drawnGame.getNumPlayerGoals();
-             int addedGoals = this.random.nextInt(2);
-             // distribute goals once for many draws, randomizing the amount 
-             if (excessGoals > 0 && playerGoals < 8) {
-                  if ((playerGoals + addedGoals) > 8) addedGoals = 1;
-                  excessGoals -= addedGoals;
-                  System.out.println("Added goals to draw: " + addedGoals);
-                  drawnGame.setNumPlayerGoals(playerGoals + addedGoals);
-             }
-        }
+         // now that we have the hopeful max # of points from the wins, we reallocate to draws 
+         for (Game drawnGame : drawnGames) {
+          int playerGoals = drawnGame.getNumPlayerGoals();
+          int addedGoals = this.random.nextInt(2);
+          // distribute goals once for many draws, randomizing the amount 
+          if (excessGoals > 0 && playerGoals < 8) {
+               if ((playerGoals + addedGoals) > 8) addedGoals = 1;
+               excessGoals -= addedGoals;
+               System.out.println("Added goals to draw: " + addedGoals);
+               drawnGame.setNumPlayerGoals(playerGoals + addedGoals);
+          }
+     }
 
-        System.out.println(excessGoals + " excess goals");
-        // reallocate to losses if there are any left 
-        for (Game lostGame : lostGames) {
-             int playerGoals = lostGame.getNumPlayerGoals();
-             // int addedGoals = 1;
-             int addedGoals = Math.min(excessGoals, Math.min(lostGame.getNumOpponentGoals() - playerGoals + 1, 8 - playerGoals));
-             // int addedGoals = Math.min(excessGoals, lostGame.getNumOpponentGoals() - playerGoals + 1);
-             
-             // distribute goals once for many losses, randomizing the amount 
-             if (excessGoals > 0 && playerGoals < 8 && addedGoals > 0) {
-                  excessGoals -= addedGoals;
-                  System.out.println("Added goals to loss: " + addedGoals);
-                  lostGame.setNumPlayerGoals(playerGoals + addedGoals);
-             }
-        }  
+     System.out.println(excessGoals + " excess goals");
+     // reallocate to losses if there are any left 
+     for (Game lostGame : lostGames) {
+          int playerGoals = lostGame.getNumPlayerGoals();
+          // int addedGoals = 1;
+          int addedGoals = Math.min(excessGoals, Math.min(lostGame.getNumOpponentGoals() - playerGoals + 1, 8 - playerGoals));
+          // int addedGoals = Math.min(excessGoals, lostGame.getNumOpponentGoals() - playerGoals + 1);
+          
+          // distribute goals once for many losses, randomizing the amount 
+          if (excessGoals > 0 && playerGoals < 8 && addedGoals > 0) {
+               excessGoals -= addedGoals;
+               System.out.println("Added goals to loss: " + addedGoals);
+               lostGame.setNumPlayerGoals(playerGoals + addedGoals);
+          }
+     }     
        
        System.out.println("excess goals3 is " + excessGoals);
        reallocatedPlayerGames.addAll(wonGames);
@@ -373,9 +374,9 @@ public class Player extends sim.Player {
        reallocatedPlayerGames.addAll(lostGames);
 
        if(checkConstraintsSatisfied(playerGames, reallocatedPlayerGames)) {
-            System.out.println("Did NOT satisfy constraints");
             return reallocatedPlayerGames;
        }
+       System.out.println("Did NOT satisfy constraints strategy 2");
        return playerGames;
      }
 
