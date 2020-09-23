@@ -155,6 +155,12 @@ public class Player extends sim.Player {
                     g.setNumPlayerGoals(g.getNumPlayerGoals()+1);
                     excessGoals -= 1;
                 }
+                if (g.getNumPlayerGoals() < g.getMaxGoalThreshold()
+                        && excessGoals > 0
+                        && gamesToBeat.contains(g.getID())) {
+                    g.setNumPlayerGoals(g.getNumPlayerGoals()+1);
+                    excessGoals -= 1;
+                }
             }
         }
 
