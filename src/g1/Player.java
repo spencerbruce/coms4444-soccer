@@ -1,4 +1,4 @@
-package g1; // TODO modify the package name to reflect your team
+package g1; 
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +18,11 @@ public class Player extends sim.Player {
      // gameID -> teamID
      //HashMap<Integer, Integer> gameIDToTeam = new HashMap<>();
      //gap to (frequency, avg allocated across all teams)
-     HashMap<Integer, ArrayList<Double>> map = new HashMap<>();
+     // HashMap<Integer, ArrayList<Double>> map = new HashMap<>();
+
+     // for use of calculating how many points the opponents have to reallocate each round 
+     // Round # --> TeamID --> Available Points
+     HashMap<Integer, Map<Integer, Integer>> availableForReallocation = new HashMap();
 
      /**
       * Player constructor
@@ -53,24 +57,7 @@ public class Player extends sim.Player {
           // for(Game game : playerGames) {
           //      System.out.println("GameID is " + game.getID());
           // }
-
-          //don't use:
-          //nothing with gameHistory
-          //disregard opponentGamesMap
-               // used to detect trends in opponent's reallocations 
-          
-          
-          //use:
-          //player games, indexed by round
-          //how many we have available to reallocate?
-          
-          
-          // if our team won, remove as many points as possible (half at most)
-          // this ensures a win while maximizing points 
-
-
-          // if it was a draw, either remove all points or do not remove any and hope the opponent removes points
-          
+     
 
              // strategy for future deliverable? vvv
           //sort by won games how much we won by
@@ -97,6 +84,53 @@ public class Player extends sim.Player {
           //2. minimax
           //3. aim for 18 points
           //4. minimize dead weight games
+
+           
+
+          //if we're more than double the score of the opponent, remove score/2
+          //else remove our score-their score - 1
+
+          //allocate to random game
+
+
+          //class 2:
+          //sort
+          //average points each other team takes away
+          //hashset int -> list<int> (margin -> list of how many the opponents changed)
+          //aim for 17/18 amount of points
+
+
+          // sort by max margin for wins, all draws, then smallest margin for losses
+          // within each game, find the smallest point games which we won -- take away those games (sacrificial loss)
+          // we can further the sorting algorithm by adding feasibility of winning to each category ^ 
+               // take top 6 in this sort
+               // then starting from 6 and working up to 1, allocate goals
+
+          //how many other team has to reallocate?
+
+          //information available to us:
+
+
+          //helper methods:
+          //sort
+               // win: biggest margin --> smallest margin
+               // draw: lowest points --> highest points 
+               // loss: lowest margin --> highest margin 
+
+          //methods:
+          //1. calculate what opponent is doing -> hashmap stuff
+          //2. aim for 18 points
+          //3. minimize dead weight games
+
+          //need to calculate expected value of opponent for each game
+          
+          //want to add 1 above expected value to as many games as we can
+
+          //sort by score - expected value for wins highest to lowest
+          //available for allocation
+
+          //while we have available goals to allocate
+          //sort by expected value - current for draws/losses lowest to highest
            
           List<Game> reallocatedPlayerGames = new ArrayList<>();
           
@@ -104,71 +138,12 @@ public class Player extends sim.Player {
           List<Game> drawnGames = getDrawnGames(playerGames);
           List<Game> lostGames = getLosingGames(playerGames);
           
-          // List<Game> lostOrDrawnGamesWithReallocationCapacity = new ArrayList<>(lostGames);
-          // lostOrDrawnGamesWithReallocationCapacity.addAll(drawnGames);
           for(Game lostGame : lostGames)
                if(lostGame.maxPlayerGoalsReached())
                     lostGames.remove(lostGame);
           for(Game drawnGame : drawnGames)
                if(drawnGame.maxPlayerGoalsReached())
                     drawnGames.remove(drawnGame);
-          
-               
-          
-
-               //if we're more than double the score of the opponent, remove score/2
-               //else remove our score-their score - 1
-
-               //allocate to random game
-
-
-               //class 2:
-               //sort
-               //average points each other team takes away
-               //hashset int -> list<int> (margin -> list of how many the opponents changed)
-               //aim for 17/18 amount of points
-
-
-               // sort by max margin for wins, all draws, then smallest margin for losses
-               // within each game, find the smallest point games which we won -- take away those games (sacrificial loss)
-               // we can further the sorting algorithm by adding feasibility of winning to each category ^ 
-                    // take top 6 in this sort
-                    // then starting from 6 and working up to 1, allocate goals
-
-               //how many other team has to reallocate?
-
-               //information available to us:
-
-
-               //helper methods:
-               //sort
-                    // win: biggest margin --> smallest margin
-                    // draw: lowest points --> highest points 
-                    // loss: lowest margin --> highest margin 
-                    
-               //check likelihood of win
-                    //uses opponents player stats/history 
-               //check for # of possible points in player + opponent's reallocation hand 
-               //
-
-               //methods:
-               //1. calculate what opponent is doing -> hashmap stuff
-               //2. aim for 18 points
-               //3. minimize dead weight games
-
-               //need to calculate expected value of opponent for each game
-               
-               //want to add 1 above expected value to as many games as we can
-
-               //sort by score - expected value for wins highest to lowest
-               //#available for allocation
-
-               //while we have available goals to allocate
-               //sort by expected value - current for draws/losses lowest to highest
-
-               
-          // 
-
 
           // wins: biggest margin --> smallest margin
           wonGames.sort(
@@ -199,6 +174,20 @@ public class Player extends sim.Player {
           for(Game won : lostGames) {
                System.out.println(won.getScoreAsString());
           }
+
+          // TODO: implement multiple strategies, calcualte how successful they were and apply weights with time
+          // TODO: see how much of a threat another team is, calculate weights
+          // TODO: switch strategies X% into the total number of rounds 
+          // TODO: calculate likeliness of opponent to remove points from draw, hope that they will remove and you won't need to
+
+          //check for # of possible points in player + opponent's reallocation hand 
+          // Round # --> TeamID --> Available Points
+          HashMap<Integer, Map<Integer, Integer>> availableForReallocation = new HashMap();
+          this.addTeamsReallocatablePts(this.teamID, wonGames, drawnGames);
+          this.addOpponentsReallocatablePts(opponentGamesMap);
+          List<Game> playerGames, 
+          Map<Integer, List<Game>> opponentGamesMap
+          
 
           // as per g5's previous approach, we will reallocate goals from wins to draws in order to maximize the number of wins 
           int excessGoals = 0;
@@ -234,7 +223,6 @@ public class Player extends sim.Player {
                // int addedGoals = 1;
                int addedGoals = Math.min(excessGoals, Math.min(lostGame.getNumOpponentGoals() - playerGoals + 1, 8 - playerGoals));
                // int addedGoals = Math.min(excessGoals, lostGame.getNumOpponentGoals() - playerGoals + 1);
-               // distrubute goals one-by-one? 
                
                // distribute goals once for many losses, randomizing the amount 
                if (excessGoals > 0 && playerGoals < 8) {
@@ -286,4 +274,23 @@ public class Player extends sim.Player {
     	 }
     	 return losingGames;
      }
+
+     // TODO: calculate how much a team has to reallocate, take advantage of those that are not doing well
+     // by implementing this into our Win/Loss/Draw sorting
+     // WIP by spencer vvv
+     HashMap<Integer, Map<Integer, Integer>> availableForReallocation = new HashMap();
+     this.addTeamsReallocatablePts(this.teamID, wonGames, drawnGames);
+     this.addOpponentsReallocatablePts(opponentGamesMap);
+     List<Game> playerGames, 
+     Map<Integer, List<Game>> opponentGamesMap
+
+     private void addTeamsReallocatablePts(Integer teamID, List<Game> wonGames, List<Game> drawnGames) {
+          with this round# and the given teamID, 
+     }
+
+     private void addOpponentsReallocatablePts(Map<Integer, List<Game>> opponentGamesMap) {
+
+     }
+
+
 }
