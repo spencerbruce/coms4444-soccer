@@ -228,7 +228,7 @@ public class Player extends sim.Player {
                (Game g1, Game g2) -> (g2.getNumPlayerGoals() - g2.getNumOpponentGoals() 
                - (g1.getNumPlayerGoals() - g1.getNumOpponentGoals()))
           );
-
+       
           this.simPrinter.println("\nwon games are:");
           for(Game won : wonGames) {
                this.simPrinter.println(won.getScoreAsString());
