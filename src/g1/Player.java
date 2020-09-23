@@ -48,47 +48,6 @@ public class Player extends sim.Player {
           //      this.simPrinter.println("GameID is " + game.getID());
           // }
 
-          int strategy = 0;
-          int cutoff = 50;
-
-          int rand = random.nextInt(100);
-     
-          //int cutoff = (strategy1Avg + strategy2Avg)/2*100;
-          if(rand > cutoff) {
-               this.simPrinter.println("\nRandom variable: " + rand + " --> strategy 1");
-               return strategy1(round, gameHistory, playerGames, opponentGamesMap);
-          }
-          else {
-               this.simPrinter.println("\nRandom variable: " + rand + " --> strategy 2");
-               return strategy1(round, gameHistory, playerGames, opponentGamesMap);
-          }
-
-          // TODO: Calculate how much a team has to reallocate, take advantage of those that are not doing well by implementing this into our Win/Loss/Draw sorting  
-          // Round # --> TeamID --> Available Points
-          // this.addTeamsReallocatablePts(this.teamID, round, wonGames, drawnGames);
-          // this.addOpponentsReallocatablePts(opponentGamesMap, round);
-          // availableForReallocation.forEach((key,value) -> this.simPrinter.println("Round " + key + " => " + value));
-          // this.simPrinter.println();
-     }
-
-     /* strategy methods
-          - strategy 1 = sort wins from biggest margin --> smallest margin
-                              draws from highest points --> lowest points 
-                              losses from lowest margin --> highest margin 
-                         Prioritize winning draws with random variation of points 
-                         taken from wins and given to draws
-          - strategy 2 = same sort as strategy 1
-                         Prioritize trying to win losses, which means sacrificing both losses and draws 
-                         Still randomizing taking goals from wins
-     
-          TODO: implement multiple strategies, calcualte how successful they were and apply weights with time
-          TODO: instead of randomly selecting a strategy, prioritize rank, prev # of wins, or something else
-          TODO: see how much of a threat another team is, calculate weights
-          TODO: switch strategies X% into the total number of rounds 
-          TODO: calculate likeliness of opponent to remove points from draw, hope that they will remove and you won't need to
-     */
-     
-     private List<Game> strategy1(Integer round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap) {
           List<Game> reallocatedPlayerGames = new ArrayList<>();
           
           List<Game> wonGames = getWinningGames(playerGames);
@@ -103,7 +62,59 @@ public class Player extends sim.Player {
                     drawnGames.remove(drawnGame);
 
           this.sortGamesLists(wonGames, drawnGames, lostGames);
-         
+
+          // Stores round available points in a map : Round # --> TeamID --> Available Points
+          this.addTeamsReallocatablePts(this.teamID, round, wonGames, drawnGames);
+          this.addOpponentsReallocatablePts(opponentGamesMap, round);
+          availableForReallocation.forEach((key,value) -> this.simPrinter.println("Round " + key + " => " + value));
+          this.simPrinter.println();
+
+          int cutoff = 50;
+          int rand = random.nextInt(100);
+     
+          //int cutoff = (strategy1Avg + strategy2Avg)/2*100;
+          if(rand > cutoff) {
+               this.simPrinter.println("Random variable: " + rand + " --> strategy 1\n");
+               strategy1(wonGames, drawnGames, lostGames, round);
+          }
+          else {
+               this.simPrinter.println("Random variable: " + rand + " --> strategy 2\n");
+               strategy1(wonGames, drawnGames, lostGames, round);
+          }
+
+          reallocatedPlayerGames.addAll(wonGames);
+          reallocatedPlayerGames.addAll(drawnGames);
+          reallocatedPlayerGames.addAll(lostGames);
+
+          if(checkConstraintsSatisfied(playerGames, reallocatedPlayerGames))
+               return reallocatedPlayerGames;
+          this.simPrinter.println("Group 1 is breaking constraints");
+          return playerGames;
+     }
+
+     /* strategy methods
+          - strategy 1 = sort wins from biggest margin --> smallest margin
+                              draws from highest points --> lowest points 
+                              losses from lowest margin --> highest margin 
+                         Prioritize winning draws with random variation of points 
+                         taken from wins and given to draws
+          - strategy 2 = same sort as strategy 1
+                         Prioritize trying to win losses, which means sacrificing both losses and draws 
+                         Sacrifice draws only if we have more reallocatable goals than the opponent 
+                         Still randomizing taking goals from wins
+     
+          TODO: implement multiple strategies, calcualte how successful they were and apply weights with time
+          TODO: instead of randomly selecting a strategy, prioritize rank, prev # of wins, or something else
+          TODO: see how much of a threat another team is, calculate weights
+          TODO: switch strategies X% into the total number of rounds 
+          TODO: implement strategies game-by-game, not round-by-round
+          TODO: calculate likeliness of opponent to remove points from draw, hope that they will remove and you won't need to
+               ^^ let's use the available points for now maybe?
+          TODO: Strategy 2: make it so it adds to won games instead of taking away from them?
+          TODO: Maybe count how many games are in won/lost/drawn to determine which points to reallocate?
+     */
+     
+     private void strategy1(List<Game> wonGames, List<Game> drawnGames, List<Game> lostGames, Integer round) {
           // as per g5's previous approach, we will reallocate goals from wins to draws in order to maximize the number of wins 
           int excessGoals = 0;
           for (Game winningGame : wonGames) {
@@ -125,6 +136,8 @@ public class Player extends sim.Player {
                     int playerGoals = drawnGame.getNumPlayerGoals();
                     int addedGoals = this.random.nextInt(2);
                     // distribute goals once for many draws, randomizing the amount 
+                    // if (this.availableForReallocation.get(round).get(this.teamID) this.availableForReallocation.get(round).get(drawnGame.getID()) 
+                    //      && excessGoals > 0 && playerGoals < 8) {
                     if (excessGoals > 0 && playerGoals < 8) {
                          if ((playerGoals + addedGoals) > 8) addedGoals = 1;
                          excessGoals -= addedGoals;
@@ -139,7 +152,6 @@ public class Player extends sim.Player {
                     // int addedGoals = 1;
                     int addedGoals = Math.min(excessGoals, Math.min(lostGame.getNumOpponentGoals() - playerGoals + 1, 8 - playerGoals));
                     // int addedGoals = Math.min(excessGoals, lostGame.getNumOpponentGoals() - playerGoals + 1);
-                    
                     // distribute goals once for many losses, randomizing the amount 
                     if (excessGoals > 0 && playerGoals < 8 && addedGoals > 0) {
                          excessGoals -= addedGoals;
@@ -148,33 +160,10 @@ public class Player extends sim.Player {
                     }
                }     
           }
-          
-          reallocatedPlayerGames.addAll(wonGames);
-          reallocatedPlayerGames.addAll(drawnGames);
-          reallocatedPlayerGames.addAll(lostGames);
-
-          if(checkConstraintsSatisfied(playerGames, reallocatedPlayerGames))
-               return reallocatedPlayerGames;
-          this.simPrinter.println("Group 1 is breaking constraints");
-          return playerGames;
+          this.simPrinter.println();
      }
 
-     private List<Game> strategy2(Integer round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap) {
-          List<Game> reallocatedPlayerGames = new ArrayList<>();
-
-          List<Game> wonGames = getWinningGames(playerGames);
-          List<Game> drawnGames = getDrawnGames(playerGames);
-          List<Game> lostGames = getLosingGames(playerGames);
-
-          for(Game lostGame : lostGames)
-               if(lostGame.maxPlayerGoalsReached())
-                    lostGames.remove(lostGame);
-          for(Game drawnGame : drawnGames)
-               if(drawnGame.maxPlayerGoalsReached())
-                    drawnGames.remove(drawnGame);
-
-          this.sortGamesLists(wonGames, drawnGames, lostGames);
-
+     private void strategy2(List<Game> wonGames, List<Game> drawnGames, List<Game> lostGames, Integer round) {
           // as per g5's previous approach, we will reallocate goals from wins to draws in order to maximize the number of wins 
           int excessGoals = 0;
           for (Game winningGame : wonGames) {
@@ -190,13 +179,15 @@ public class Player extends sim.Player {
                winningGame.setNumPlayerGoals(playerGoals - subtractedGoals);
           }
           
-          // give up on draws
+          // give up on draws only if we have more available points than the opponent
           for (Game drawnGame : drawnGames) {
-               int playerGoals = drawnGame.getNumPlayerGoals();
-               int half = drawnGame.getHalfNumPlayerGoals();
-               this.simPrinter.println("Subtracted goals from draws: " + half);
-               excessGoals+= half;
-               drawnGame.setNumPlayerGoals(playerGoals-half);
+               if (this.availableForReallocation.get(round).get(this.teamID) > this.availableForReallocation.get(round).get(drawnGame.getID())) {
+                    int playerGoals = drawnGame.getNumPlayerGoals();
+                    int half = drawnGame.getHalfNumPlayerGoals();
+                    this.simPrinter.println("Subtracted goals from draws: " + half);
+                    excessGoals+= half;
+                    drawnGame.setNumPlayerGoals(playerGoals-half);
+               }
           }
 
           // add all goals to losses
@@ -216,15 +207,7 @@ public class Player extends sim.Player {
                     }
                }     
           }
-             
-          reallocatedPlayerGames.addAll(wonGames);
-          reallocatedPlayerGames.addAll(drawnGames);
-          reallocatedPlayerGames.addAll(lostGames);
-
-          if(checkConstraintsSatisfied(playerGames, reallocatedPlayerGames))
-               return reallocatedPlayerGames;
-          this.simPrinter.println("Group 1 is breaking constraints");
-          return playerGames;
+          this.simPrinter.println();
      }
 
      private void sortGamesLists(List<Game> wonGames, List<Game> drawnGames, List<Game> lostGames) {
@@ -257,6 +240,7 @@ public class Player extends sim.Player {
           for(Game won : lostGames) {
                this.simPrinter.println(won.getScoreAsString());
           }
+          this.simPrinter.println();
      }
     
      // helper methods stolen from random >:D
