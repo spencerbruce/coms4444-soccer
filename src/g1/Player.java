@@ -46,13 +46,14 @@ public class Player extends sim.Player {
       */
      public List<Game> reallocate(Integer round, GameHistory gameHistory, List<Game> playerGames, Map<Integer, List<Game>> opponentGamesMap) {
           System.out.println("Round is " + round);
+          System.out.println("our ID is " + teamID);
           if(round > 1) {
                addAllGaps(round, gameHistory, opponentGamesMap);
-               printMap(round);
+               //printMap(round);
           }
 
           for(Game game : playerGames) {
-               System.out.println("GameID is " + game.getID());
+               System.out.println("ID: " + game.getID() + ", Score: " + game.getScoreAsString());
           }
 
           // TODO add your code here to reallocate player goals
@@ -184,51 +185,99 @@ public class Player extends sim.Player {
                     int expMargin = game.getNumPlayerGoals() - expVal;
 
                     //if we think we'll still be winning after opponent reallocates, we take off points so we win by 1
-                    if(expMargin > 1) {
+                    if(expMargin > 0) {
+                         System.out.println("keeping");
                          int excess = expMargin - 1;
                          toAllocate += excess;
                          game.setNumPlayerGoals(game.getNumPlayerGoals() - excess);
                     }
                     //if we don't think we'll be winning after opponent reallocates, give up on game
                     else {
+                         System.out.println("not keeping");
                          int halfVal = game.getHalfNumPlayerGoals();
                          toAllocate += halfVal;
                          game.setNumPlayerGoals(game.getNumPlayerGoals() - halfVal);
                     }
                }
 
+               System.out.println("to allocate is " + toAllocate);
+
                //lowest to highest for opponent expected val - our score (expected gap after reallocation)
                toAdd.sort(
                     (Game g1, Game g2) -> 
-                    (g1.getNumOpponentGoals() + getExpectedVal(g1.getNumPlayerGoals()-g1.getNumOpponentGoals()) - g1.getNumPlayerGoals())
-                    - (g2.getNumOpponentGoals() + getExpectedVal(g2.getNumPlayerGoals()-g2.getNumOpponentGoals()) - g2.getNumPlayerGoals())
+                    (g1.getNumOpponentGoals() + getExpectedVal(g1.getNumOpponentGoals()-g1.getNumPlayerGoals()) - g1.getNumPlayerGoals())
+                    - (g2.getNumOpponentGoals() + getExpectedVal(g2.getNumOpponentGoals()-g2.getNumPlayerGoals()) - g2.getNumPlayerGoals())
                );
-               int idx = 0;
+               //reallocate games we're tying but they will allocate to
 
-               for(Game game : toAdd) {
-                    System.out.println("Scoreee here is " + game.getScoreAsString());
-               }
+               int idx = 0;
 
                while(idx < toAdd.size() && toAllocate > 0) {
                     Game g1 = toAdd.get(idx);
-                    int expectedVal = g1.getNumOpponentGoals() + getExpectedVal(g1.getNumPlayerGoals()-g1.getNumOpponentGoals());
-                    int needed = expectedVal - g1.getNumPlayerGoals() + 1;
+                    int expectedVal = g1.getNumOpponentGoals() + getExpectedVal(g1.getNumOpponentGoals()-g1.getNumPlayerGoals());
 
-                    if(g1.getNumPlayerGoals() + 1 > 8) {
+                    //if tied and we think they'll add to it, lose it
+                    if((g1.getNumPlayerGoals() == g1.getNumOpponentGoals()) && (g1.getNumPlayerGoals() < expectedVal)) {
+                         System.out.println("not keeping draw");
+                         int halfVal = g1.getHalfNumPlayerGoals();
+                         toAllocate += halfVal;
+                         g1.setNumPlayerGoals(g1.getNumPlayerGoals() - halfVal);
+                         toAdd.remove(idx);
                          continue;
                     }
 
+                    System.out.println("current score is" + g1.getScoreAsString());
+                    System.out.println("expectedVal is " + expectedVal);
+                    System.out.println("expected gap from our POV is " + (g1.getNumPlayerGoals() - expectedVal));
+
+                    int needed = expectedVal - g1.getNumPlayerGoals() + 1;
+
+                    //if we think we need more than 8 goals to win, skip it
+                    if(g1.getNumPlayerGoals() + needed > 8) {
+                         idx++;
+                         continue;
+                    }
+
+                    //to prevent funny behavior
+                    if(needed < 0) {
+                         needed = 0;
+                    }
+                    //if we need more than available
                     if(needed > toAllocate) {
                          needed = toAllocate;
                     }
 
                     g1.setNumPlayerGoals(g1.getNumPlayerGoals() + needed);
+                    toAllocate -= needed;
                     idx++;
                }
+
+               //loop through if goals left
+               idx = 0;
+               while(toAllocate > 0) {
+                    Game g1 = toAdd.get(idx);
+                    if(g1.getNumPlayerGoals() < 8) {
+                         g1.setNumPlayerGoals(g1.getNumPlayerGoals() + 1);
+                         toAllocate--;
+                    }
+
+                    idx++;
+                    if(idx == toAdd.size()) {
+                         idx = 0;
+                    }
+               }
+
+               System.out.println("to Allocate end is " + toAllocate);
 
                ArrayList<Game> toReturn = new ArrayList<>();
                toReturn.addAll(wonGames);
                toReturn.addAll(toAdd);
+
+               //System.out.println("bool is " + checkConstraintsSatisfied(playerGames, toReturn));
+
+               if(checkConstraintsSatisfied(playerGames, toReturn))
+                    return reallocatedPlayerGames;
+               System.out.println("Did NOT satisfy constraints");
                return toReturn;
 
 
@@ -243,18 +292,15 @@ public class Player extends sim.Player {
                //sort by expected value - current for draws/losses lowest to highest
           }
 
-          return playerGames;
-             
-               
           // wins: biggest margin --> smallest margin
-          /*wonGames.sort(
+          wonGames.sort(
                (Game g1, Game g2) -> (g2.getNumPlayerGoals() - g2.getNumOpponentGoals() 
                - (g1.getNumPlayerGoals() - g1.getNumOpponentGoals()))
           );
 
-          // draws: lowest poitns --> highest points 
+          // draws: highest points --> lowest points 
           drawnGames.sort(
-               (Game g1, Game g2) -> (g1.getNumPlayerGoals() - g2.getNumOpponentGoals())
+               (Game g1, Game g2) -> (g2.getNumPlayerGoals() - g1.getNumOpponentGoals())
           );
 
           // losses: lowest margin --> highest margin 
@@ -263,36 +309,70 @@ public class Player extends sim.Player {
                - (g1.getNumPlayerGoals() - g1.getNumOpponentGoals()))
           );
 
-          System.out.println("won games are:\nP O\n---");
+          System.out.println("won games are:");
           for(Game won : wonGames) {
                System.out.println(won.getScoreAsString());
           }
-          System.out.println("\ndrawn games are:\nP O\n---");
-          for(Game drawn : drawnGames) {
-               System.out.println(drawn.getScoreAsString());
+          System.out.println("\ndrawn games are:");
+          for(Game won : drawnGames) {
+               System.out.println(won.getScoreAsString());
           }
-          System.out.println("\nlost games are:\nP O\n---");
-          for(Game lost : lostGames) {
-               System.out.println(lost.getScoreAsString());
+          System.out.println("\nlost games are:");
+          for(Game won : lostGames) {
+               System.out.println(won.getScoreAsString());
           }
 
+          // as per g5's previous approach, we will reallocate goals from wins to draws in order to maximize the number of wins 
           int excessGoals = 0;
           for (Game winningGame : wonGames) {
                if (drawnGames.size() == 0) 
                     break;
+               int playerGoals = winningGame.getNumPlayerGoals();
+               int margin = playerGoals - winningGame.getNumOpponentGoals();
                // randomize whether we are leaving a margin of 1 or 2 on the win
-               // distrubute goals one-by-one? 
-                              int subtract = Math.min(this.random.nextInt(2) + margin - 2, game.getHalfNumPlayerGoals());
-               int subtractedGoals = winningGame.getHalfNumPlayerGoals() - this.random.nextInt(1) + 1;
+               int subtractedGoals = Math.min(this.random.nextInt(2) + margin - 2, winningGame.getHalfNumPlayerGoals());
+               subtractedGoals = Math.max(subtractedGoals,0);
+               System.out.println("Subtracted goals: " + subtractedGoals);
                excessGoals += subtractedGoals;
-               game.setNumPlayerGoals(winningGame.getHalfNumPlayerGoals() - subtractedGoals);
-               
+               winningGame.setNumPlayerGoals(playerGoals - subtractedGoals);
           }
           
+          // now that we have the hopeful max # of points from the wins, we reallocate to draws 
           for (Game drawnGame : drawnGames) {
                int playerGoals = drawnGame.getNumPlayerGoals();
+               int addedGoals = this.random.nextInt(2);
+               // distribute goals once for many draws, randomizing the amount 
+               if (excessGoals > 0 && playerGoals < 8) {
+                    if ((playerGoals + addedGoals) > 8) addedGoals = 1;
+                    excessGoals -= addedGoals;
+                    System.out.println("Added goals to draw: " + addedGoals);
+                    drawnGame.setNumPlayerGoals(playerGoals + addedGoals);
+               }
+          }
+          System.out.println(excessGoals + " excess goals");
+          // reallocate to losses if there are any left 
+          for (Game lostGame : lostGames) {
+               int playerGoals = lostGame.getNumPlayerGoals();
+               // int addedGoals = 1;
+               int addedGoals = Math.min(excessGoals, Math.min(lostGame.getNumOpponentGoals() - playerGoals + 1, 8 - playerGoals));
+               // int addedGoals = Math.min(excessGoals, lostGame.getNumOpponentGoals() - playerGoals + 1);
+               // distrubute goals one-by-one? 
+               
+               // distribute goals once for many losses, randomizing the amount 
+               if (excessGoals > 0 && playerGoals < 8) {
+                    excessGoals -= addedGoals;
+                    System.out.println("Added goals to loss: " + addedGoals);
+                    lostGame.setNumPlayerGoals(playerGoals + addedGoals);
+               }
+          }     
+          reallocatedPlayerGames.addAll(wonGames);
+          reallocatedPlayerGames.addAll(drawnGames);
+          reallocatedPlayerGames.addAll(lostGames);
 
-          }*/
+          if(checkConstraintsSatisfied(playerGames, reallocatedPlayerGames))
+               return reallocatedPlayerGames;
+          System.out.println("Did NOT satisfy constraints");
+          return playerGames;
           
      }
 
