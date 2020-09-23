@@ -46,6 +46,16 @@ public class Player extends sim.Player {
 	public List<Game> reallocate(Integer round, GameHistory gameHistory, List<Game> playerGames,
 			Map<Integer, List<Game>> opponentGamesMap) {
 		List<Game> reallocatedPlayerGames = new ArrayList<>();
+		Map<Integer, Double> currentAverages = gameHistory.getAllAverageRankingsMap().get(round);
+		double g4MeanRanking = currentAverages.get(this.teamID);
+		LinkedHashMap<Integer, Double> sortedRanks = new LinkedHashMap<>();
+ 
+		sortedRanks.entrySet()
+			.stream()
+			.sorted(Map.Entry.comparingByValue())
+			.forEachOrdered(x -> sortedRanks.put(x.getKey(), x.getValue()));
+		
+		List<Double> rankList = new ArrayList<Double>(sortedRanks.values());
 		
 		// pointPredictor.trackData(opponentGamesMap);
 
@@ -54,7 +64,7 @@ public class Player extends sim.Player {
 		// List<Game> wonGames = getWinningGames(playerGames);
 		// List<Game> drawnGames = getDrawnGames(playerGames);
 		// List<Game> lostGames = getLosingGames(playerGames);
-		if (round <= 5) {
+		if (0 < rankList.indexOf(g4MeanRanking) && rankList.indexOf(g4MeanRanking) < 5) {
 			reallocatedPlayerGames = attackHigherRanks(round, gameHistory, playerGames, opponentGamesMap);
 		}
 		else {
