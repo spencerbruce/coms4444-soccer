@@ -68,6 +68,7 @@ public class Player extends sim.Player {
           this.addOpponentsReallocatablePts(opponentGamesMap, round);
           availableForReallocation.forEach((key,value) -> this.simPrinter.println("Round " + key + " => " + value));
           this.simPrinter.println();
+          this.getStatsGames(wonGames, drawnGames, lostGames);
 
           int cutoff = 50;
           int rand = random.nextInt(100);
@@ -299,6 +300,17 @@ public class Player extends sim.Player {
           opponentGamesMap.forEach( (key,value) 
                -> addTeamsReallocatablePts(key, round, getWinningGames(value), getDrawnGames(value))
           );
+     }
+
+     private Map<String, Integer> getStatsGames(List<Game> wonGames, List<Game> drawnGames, List<Game> lostGames) {
+          //returns dictionary with the sizes of won/loss/drawn
+          Map<String, Integer> roundStats = new HashMap<String, Integer>();
+          roundStats.put("W", wonGames.size());
+          roundStats.put("D", drawnGames.size());
+          roundStats.put("L", lostGames.size());
+
+          System.out.println(" Game Statistics " + roundStats);
+          return roundStats;
      }
 
 }
