@@ -189,10 +189,6 @@ public class Player extends sim.Player {
                - strategy X = Maxing out draw each round, or max out success each round 
 
                sort draws in another direction? 
-
-               - strategy 3 = take from draws, give to losses, then give to successes
-               - strategy 4 = take from draws, give to success, then give to losses
-               - strategy 5 = tale from draws and wins and give to draws and wins? 
      
           TODO: see how much of a threat all other teams are
                This is better than calculating it on an opponent-by-opponent basis for our round-prioritization perspective 
@@ -344,6 +340,55 @@ public class Player extends sim.Player {
           // this.simPrinter.println("here5\n");
      }
 
+     private void strategy3(List<Game> wonGames, List<Game> drawnGames, List<Game> lostGames, Integer round) {
+          // Take goals from draws, reallocate to losses first, wins second
+          int excessGoals = 0;
+          // give up on draws only if we have more available points than the opponent
+          for (Game drawnGame : drawnGames) {
+               if (this.availableForReallocation.get(round).get(this.teamID) > this.availableForReallocation.get(round).get(drawnGame.getID())) {
+                    int playerGoals = drawnGame.getNumPlayerGoals();
+                    int half = drawnGame.getHalfNumPlayerGoals();
+                    this.simPrinter.println("Subtracted goals from draws: " + half);
+                    excessGoals+= half;
+                    drawnGame.setNumPlayerGoals(playerGoals-half);
+               }
+          }
+
+          // add all goals to losses
+          while (excessGoals > 0) {
+               // reallocate to losses if there are any left
+               for (Game lostGame : lostGames) {
+                    int playerGoals = lostGame.getNumPlayerGoals();
+                    int addedGoals = Math.min(excessGoals, Math.min(lostGame.getNumOpponentGoals() - playerGoals + 1, 8 - playerGoals));
+
+                    // distribute goals once for many losses, randomizing the amount
+                    if (excessGoals > 0 && playerGoals < 8 && addedGoals > 0) {
+                         excessGoals -= addedGoals;
+                         this.simPrinter.println("Added goals to loss: " + addedGoals);
+                         lostGame.setNumPlayerGoals(playerGoals + addedGoals);
+                    }
+               }
+               
+               // now that we have the hopeful max # of points from the wins, we reallocate to draws 
+               for (Game drawnGame : drawnGames) {
+                    int playerGoals = drawnGame.getNumPlayerGoals();
+                    int addedGoals = this.random.nextInt(2);
+                    // distribute goals once for many draws, randomizing the amount 
+                    // if (this.availableForReallocation.get(round).get(this.teamID) this.availableForReallocation.get(round).get(drawnGame.getID()) 
+                    //      && excessGoals > 0 && playerGoals < 8) {
+                    if (excessGoals > 0 && playerGoals < 8) {
+                         if ((playerGoals + addedGoals) > 8) addedGoals = 1;
+                         excessGoals -= addedGoals;
+                         this.simPrinter.println("Added goals to draw: " + addedGoals);
+                         drawnGame.setNumPlayerGoals(playerGoals + addedGoals);
+                    }
+               }
+               
+          }
+          this.simPrinter.println();
+     }
+
+
      private int[] calcStats(float av1, float av2, int f1, int f2) {
          //int cutoff = (int) (av1*av1*f1);
          //int total = (int) (av1*av1*f1 + av2*av2*f2);
@@ -475,3 +520,15 @@ public class Player extends sim.Player {
      }
 
 }
+
+// should we make a Point.java class that allows you to reallocate back to the original game you took from?
+// 1 - wins -> draws (losses maybe)
+// 2 - wins + draws -> losses (maybe draws)
+// 3 - draws -> losses + draws 
+
+// TODO:
+// X - wins -> losses (draws maybe)
+// X - wins + draws -> draws (losses maybe)
+// 4 - draws -> draws + losses
+// 4 - wins + draws -> wins  (dont take them from that game?)
+
