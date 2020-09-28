@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.PriorityQueue;
 
 import sim.Game;
 import sim.GameHistory;
@@ -15,7 +16,7 @@ public class Player extends sim.Player {
      Map<Integer, Map<Integer, Integer>> availableForReallocation = new HashMap<>();
 
      // Round # --> TeamID --> List< # wins, # draws, # losses> 
-     Map<Integer, Map<Integer, List<Integer>>> allTeamWinsDrawsLosses = new HashMap<>();
+     // Map<Integer, Map<Integer, List<Integer>>> allTeamWinsDrawsLosses = new HashMap<>();
 
      // TeamID --> Margin --> Average point reallocation  
           // winning a game 8-6 is very different than winning a game 2-0, even with the same margin
@@ -24,6 +25,15 @@ public class Player extends sim.Player {
           // Team ID --> point value --> Win --> Margin --> Average Response
           //                         --> Draw --> Margin(0) --> Average Response
           //                         --> Loss --> Margin --> Average Response
+     int cutoff = 50;
+     int lastStrat = 0;
+     
+     //how fast to change moving average
+     float alpha = 0.2f;
+     float avg1 = 0;
+     float avg2 = 0;
+     int freq1 = 0;
+     int freq2 = 0;
 
      /**
       * Player constructor
@@ -58,16 +68,42 @@ public class Player extends sim.Player {
           //      this.simPrinter.println("GameID is " + game.getID());
           // }
 
+          this.simPrinter.println("Starting reallocation");
+
+          //update exponentially moving average
+          if(lastStrat == 1) {
+              int lastRoundScore = gameHistory.getAllRoundPointsMap().get(round-1).get(teamID).getTotalPoints();
+              if(freq1 == 1) {
+                  avg1 = lastRoundScore;
+              }
+              else {
+                  avg1 = alpha*lastRoundScore + (1-alpha)*avg1;
+              }
+              this.simPrinter.println("\nRound is " + round);
+              this.simPrinter.println("Last round strategy was " + lastStrat);
+              this.simPrinter.println("Last round scored " + lastRoundScore);
+              this.simPrinter.println("Avg1 is " + avg1);
+          }
+
+          if(lastStrat == 2) {
+               int lastRoundScore = gameHistory.getAllRoundPointsMap().get(round-1).get(teamID).getTotalPoints();
+               if(freq2 == 1) {
+                    avg2 = lastRoundScore;
+               }
+               else {
+                    avg2 = alpha*lastRoundScore + (1-alpha)*avg2;
+               }
+               this.simPrinter.println("\nRound is " + round);
+               this.simPrinter.println("Last round strategy was " + lastStrat);
+               this.simPrinter.println("Last round scored " + lastRoundScore);
+               this.simPrinter.println("Avg2 is " + avg2);
+          }
+
           List<Game> reallocatedPlayerGames = new ArrayList<>();
           
           List<Game> wonGames = getWinningGames(playerGames);
           List<Game> drawnGames = getDrawnGames(playerGames);
           List<Game> lostGames = getLosingGames(playerGames);
-          
-          for(Game lostGame : lostGames)
-               if(lostGame.maxPlayerGoalsReached())
-                    lostGames.remove(lostGame);
-          
           this.sortGamesLists(wonGames, drawnGames, lostGames);
 
           // Stores round available points in a map : Round # --> TeamID --> Available Points
@@ -77,16 +113,49 @@ public class Player extends sim.Player {
           this.simPrinter.println();
           // this.getStatsGames(wonGames, drawnGames, lostGames);
 
-          int cutoff = 50;
-          int rand = random.nextInt(100);
+          int currStrat = 1;
+
+          //if a strategy hasn't been tried, try it
+          if(freq1 == 0) {
+               currStrat = 1;
+          }
+          else if(freq2 == 0) {
+               currStrat = 2;
+          }
+          
+          //otherwise use weighted randomness
+          else {
+               int[] stats = calcStats(avg1, avg2, freq1, freq2);
+               int cutoff = stats[0];
+               int max = stats[1];
+          
+               int rand = random.nextInt(max);
+               //double rand = Math.random()*max;
+               this.simPrinter.println("max is " + max);
+               this.simPrinter.println("average 1 is "+avg1);
+               this.simPrinter.println("average 2 is "+ avg2);
+               this.simPrinter.println("cutoff is " + cutoff);
+               this.simPrinter.println("rand is " + rand);
+               if(rand < cutoff) {
+                    currStrat = 1;
+               }
+               else {
+                    currStrat = 2;
+               }
+          }
      
-          //int cutoff = (strategy1Avg + strategy2Avg)/2*100;
-          if(rand > cutoff) {
-               this.simPrinter.println("Random variable: " + rand + " --> strategy 1\n");
+          if(currStrat == 1) {
+               this.simPrinter.println("strategy here is 1");
+               freq1++;
+               lastStrat = 1;
+               //this.simPrinter.println("Random variable: " + rand + " --> strategy 1\n");
                strategy1(wonGames, drawnGames, lostGames, round);
           }
           else {
-               this.simPrinter.println("Random variable: " + rand + " --> strategy 2\n");
+               this.simPrinter.println("strategy here is 2");
+               freq2++;
+               lastStrat = 2;
+               //this.simPrinter.println("Random variable: " + rand + " --> strategy 2\n");
                strategy2(wonGames, drawnGames, lostGames, round);
           }
 
@@ -99,6 +168,7 @@ public class Player extends sim.Player {
           this.simPrinter.println("Group 1 is breaking constraints");
           return playerGames;
      }
+
 
      /* strategy methods
           Randomly choose between the following two strategies, 50/50:
@@ -186,7 +256,6 @@ public class Player extends sim.Player {
                          drawnGame.setNumPlayerGoals(playerGoals + addedGoals);
                     }
                }
-
                // reallocate to losses if there are any left 
                for (Game lostGame : lostGames) {
                     int playerGoals = lostGame.getNumPlayerGoals();
@@ -205,6 +274,7 @@ public class Player extends sim.Player {
      }
 
      private void strategy2(List<Game> wonGames, List<Game> drawnGames, List<Game> lostGames, Integer round) {
+          // this.simPrinter.println("Top of Strategy 2");
           // as per g5's previous approach, we will reallocate goals from wins to draws in order to maximize the number of wins 
           int excessGoals = 0;
           for (Game winningGame : wonGames) {
@@ -219,6 +289,7 @@ public class Player extends sim.Player {
                excessGoals += subtractedGoals;
                winningGame.setNumPlayerGoals(playerGoals - subtractedGoals);
           }
+          // this.simPrinter.println("here2");
           
           // give up on draws only if we have more available points than the opponent
           for (Game drawnGame : drawnGames) {
@@ -231,6 +302,8 @@ public class Player extends sim.Player {
                }
           }
 
+          // this.simPrinter.println("here3");
+
           // add all goals to losses
           while (excessGoals > 0) {
                // reallocate to losses if there are any left 
@@ -239,6 +312,9 @@ public class Player extends sim.Player {
                     // int addedGoals = 1;
                     int addedGoals = Math.min(excessGoals, Math.min(lostGame.getNumOpponentGoals() - playerGoals + 1, 8 - playerGoals));
                     // int addedGoals = Math.min(excessGoals, lostGame.getNumOpponentGoals() - playerGoals + 1);
+
+                    this.simPrinter.println("playerGoals is " + playerGoals);
+                    this.simPrinter.println("addedGoals is " + addedGoals);
                     
                     // distribute goals once for many losses, randomizing the amount 
                     if (excessGoals > 0 && playerGoals < 8 && addedGoals > 0) {
@@ -246,9 +322,54 @@ public class Player extends sim.Player {
                          this.simPrinter.println("Added goals to loss: " + addedGoals);
                          lostGame.setNumPlayerGoals(playerGoals + addedGoals);
                     }
-               }     
+               }
+
+               // now that we have the hopeful max # of points from the wins, we reallocate to draws 
+               for (Game drawnGame : drawnGames) {
+                    int playerGoals = drawnGame.getNumPlayerGoals();
+                    int addedGoals = this.random.nextInt(2);
+                    // distribute goals once for many draws, randomizing the amount 
+                    // if (this.availableForReallocation.get(round).get(this.teamID) this.availableForReallocation.get(round).get(drawnGame.getID()) 
+                    //      && excessGoals > 0 && playerGoals < 8) {
+                    if (excessGoals > 0 && playerGoals < 8) {
+                         if ((playerGoals + addedGoals) > 8) addedGoals = 1;
+                         excessGoals -= addedGoals;
+                         this.simPrinter.println("Added goals to draw: " + addedGoals);
+                         drawnGame.setNumPlayerGoals(playerGoals + addedGoals);
+                    }
+               }
+               // this.simPrinter.println("excess is "+ excessGoals);
+               // this.simPrinter.println("here4");     
           }
-          this.simPrinter.println();
+          // this.simPrinter.println("here5\n");
+     }
+
+     private int[] calcStats(float av1, float av2, int f1, int f2) {
+         //int cutoff = (int) (av1*av1*f1);
+         //int total = (int) (av1*av1*f1 + av2*av2*f2);
+         //int cutoff = (int) (av1*f1);
+         //int total = (int) (av1*f1 + av2*f2);
+
+         /*this.simPrinter.println("cutoffff is " + cutoff);
+         this.simPrinter.println("totalll is " + total);*/
+
+        /* int ave1 = (int) av1;
+         int ave2 = (int) av2;
+
+         int cutoff = ave1*ave1*ave1;
+         int total = ave1*ave1*ave1 + ave2*ave2*ave2;*/
+
+         float cutoff = av1*av1*av1;
+         float total = av1*av1*av1+av2*av2*av2;
+
+         //double val = cutoff;
+
+         cutoff = (int) ((cutoff/total)*100);
+         total = 100;
+
+         return new int[] {(int) cutoff, (int) total};
+         
+
      }
 
      private void sortGamesLists(List<Game> wonGames, List<Game> drawnGames, List<Game> lostGames) {
@@ -333,6 +454,7 @@ public class Player extends sim.Player {
                availableForReallocation.put(round, new HashMap<Integer, Integer>());
           }
           availableForReallocation.get(round).put(teamID, availablePoints);
+          // this.allTeamWinsDrawsLosses
      }
 
      private void addOpponentsReallocatablePts(Map<Integer, List<Game>> opponentGamesMap, Integer round) {
@@ -348,7 +470,7 @@ public class Player extends sim.Player {
           roundStats.put("D", drawnGames.size());
           roundStats.put("L", lostGames.size());
 
-          System.out.println(" Game Statistics " + roundStats);
+          this.simPrinter.println(" Game Statistics " + roundStats);
           return roundStats;
      }
 
