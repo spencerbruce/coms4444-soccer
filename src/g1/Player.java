@@ -32,8 +32,10 @@ public class Player extends sim.Player {
      float alpha = 0.2f;
      float avg1 = 0;
      float avg2 = 0;
+     float avg3 = 0;
      int freq1 = 0;
      int freq2 = 0;
+     int freq3 = 0;
 
      /**
       * Player constructor
@@ -67,6 +69,7 @@ public class Player extends sim.Player {
           // for(Game game : playerGames) {
           //      this.simPrinter.println("GameID is " + game.getID());
           // }
+          //System.out.println("here");
 
           this.simPrinter.println("Starting reallocation");
 
@@ -99,6 +102,20 @@ public class Player extends sim.Player {
                this.simPrinter.println("Avg2 is " + avg2);
           }
 
+          if(lastStrat == 3) {
+               int lastRoundScore = gameHistory.getAllRoundPointsMap().get(round-1).get(teamID).getTotalPoints();
+               if(freq3 == 1) {
+                    avg3 = lastRoundScore;
+               }
+               else {
+                    avg3 = alpha*lastRoundScore + (1-alpha)*avg3;
+               }
+               this.simPrinter.println("\nRound is " + round);
+               this.simPrinter.println("Last round strategy was " + lastStrat);
+               this.simPrinter.println("Last round scored " + lastRoundScore);
+               this.simPrinter.println("Avg2 is " + avg3);
+          }
+
           List<Game> reallocatedPlayerGames = new ArrayList<>();
           
           List<Game> wonGames = getWinningGames(playerGames);
@@ -122,25 +139,34 @@ public class Player extends sim.Player {
           else if(freq2 == 0) {
                currStrat = 2;
           }
+          else if(freq3 == 0) {
+               currStrat = 3;
+          }
           
           //otherwise use weighted randomness
           else {
-               int[] stats = calcStats(avg1, avg2, freq1, freq2);
-               int cutoff = stats[0];
-               int max = stats[1];
+               int[] stats = calcStats(avg1, avg2, avg3, freq1, freq2, freq3);
+               int cutoff1 = stats[0];
+               int cutoff2 = stats[1];
+               int max = stats[2];
           
                int rand = random.nextInt(max);
                //double rand = Math.random()*max;
                this.simPrinter.println("max is " + max);
                this.simPrinter.println("average 1 is "+avg1);
                this.simPrinter.println("average 2 is "+ avg2);
-               this.simPrinter.println("cutoff is " + cutoff);
+               this.simPrinter.println("average 3 is "+ avg3);
+               this.simPrinter.println("cutoff1 is " + cutoff1);
+               this.simPrinter.println("cutoff1 is " + cutoff2);
                this.simPrinter.println("rand is " + rand);
-               if(rand < cutoff) {
+               if(rand < cutoff1) {
                     currStrat = 1;
                }
-               else {
+               else if(rand < cutoff2) {
                     currStrat = 2;
+               }
+               else {
+                    currStrat = 3;
                }
           }
      
@@ -151,12 +177,19 @@ public class Player extends sim.Player {
                //this.simPrinter.println("Random variable: " + rand + " --> strategy 1\n");
                strategy1(wonGames, drawnGames, lostGames, round);
           }
-          else {
+          else if(currStrat == 2) {
                this.simPrinter.println("strategy here is 2");
                freq2++;
                lastStrat = 2;
                //this.simPrinter.println("Random variable: " + rand + " --> strategy 2\n");
                strategy2(wonGames, drawnGames, lostGames, round);
+          }
+          else {
+               this.simPrinter.println("strategy here is 3");
+               freq3++;
+               lastStrat = 3;
+               //this.simPrinter.println("Random variable: " + rand + " --> strategy 2\n");
+               strategy3(wonGames, drawnGames, lostGames, round);
           }
 
           reallocatedPlayerGames.addAll(wonGames);
@@ -389,7 +422,7 @@ public class Player extends sim.Player {
      }
 
 
-     private int[] calcStats(float av1, float av2, int f1, int f2) {
+     private int[] calcStats(float av1, float av2, float av3, int f1, int f2, int f3) {
          //int cutoff = (int) (av1*av1*f1);
          //int total = (int) (av1*av1*f1 + av2*av2*f2);
          //int cutoff = (int) (av1*f1);
@@ -404,15 +437,17 @@ public class Player extends sim.Player {
          int cutoff = ave1*ave1*ave1;
          int total = ave1*ave1*ave1 + ave2*ave2*ave2;*/
 
-         float cutoff = av1*av1*av1;
-         float total = av1*av1*av1+av2*av2*av2;
+         float cutoff1 = av1*av1*av1*av1;
+         float cutoff2 = av1*av1*av1*av1 + av2*av2*av2*av2;
+         float total = av1*av1*av1*av1 + av2*av2*av2*av2 + av3*av3*av3*av3;
 
          //double val = cutoff;
 
-         cutoff = (int) ((cutoff/total)*100);
+         cutoff1 = (int) ((cutoff1/total)*100);
+         cutoff2 = (int) ((cutoff2/total)*100);
          total = 100;
 
-         return new int[] {(int) cutoff, (int) total};
+         return new int[] {(int) cutoff1, (int) cutoff2, (int) total};
          
 
      }
