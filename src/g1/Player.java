@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.PriorityQueue;
 
 import sim.Game;
 import sim.GameHistory;
@@ -14,6 +13,17 @@ public class Player extends sim.Player {
      // for use of calculating how many points the opponents have to reallocate each round 
      // Round # --> TeamID --> Available Points
      Map<Integer, Map<Integer, Integer>> availableForReallocation = new HashMap<>();
+
+     // Round # --> TeamID --> List< # wins, # draws, # losses> 
+     Map<Integer, Map<Integer, List<Integer>>> allTeamWinsDrawsLosses = new HashMap<>();
+
+     // TeamID --> Margin --> Average point reallocation  
+          // winning a game 8-6 is very different than winning a game 2-0, even with the same margin
+          // the following arrangement would be necessary, with a large number of total rounds for 
+          // data to be worth it 
+          // Team ID --> point value --> Win --> Margin --> Average Response
+          //                         --> Draw --> Margin(0) --> Average Response
+          //                         --> Loss --> Margin --> Average Response
 
      /**
       * Player constructor
@@ -57,10 +67,7 @@ public class Player extends sim.Player {
           for(Game lostGame : lostGames)
                if(lostGame.maxPlayerGoalsReached())
                     lostGames.remove(lostGame);
-          for(Game drawnGame : drawnGames)
-               if(drawnGame.maxPlayerGoalsReached())
-                    drawnGames.remove(drawnGame);
-
+          
           this.sortGamesLists(wonGames, drawnGames, lostGames);
 
           // Stores round available points in a map : Round # --> TeamID --> Available Points
@@ -93,26 +100,58 @@ public class Player extends sim.Player {
      }
 
      /* strategy methods
-          Randomly choose between the following two strategies:
+          Randomly choose between the following two strategies, 50/50:
                - strategy 1 = sort wins from biggest margin --> smallest margin
                                    draws from highest points --> lowest points 
                                    losses from lowest margin --> highest margin 
                               Prioritize winning draws with random variation of points 
                               taken from wins and given to draws
-               - strategy 2 = same sort as strategy 1
-                              Prioritize trying to win losses, which means sacrificing both losses and draws 
+               - strategy 2 = same sort as strategy 1, useful if there is a large number of losses 
+                              Prioritize trying to win losses, which means sacrificing both wins and draws 
                               Sacrifice draws only if we have more reallocatable goals than the opponent 
                               Still randomizing taking goals from wins
+                              give to losses
+
+               - strategy 2.5 = strategy 2 but without the contingency of # of reallocatable goals ???
+               - strategy 2.5 = strategy 2 but with the contingency of # of games opponent has won ???
+               - strategy 2.5 = strategy 2 but with the contingency of rank ???
+               - strategy X = Maxing out draw each round, or max out success each round 
+
+               sort draws in another direction? 
+
+               - strategy 3 = take from draws, give to losses, then give to successes
+               - strategy 4 = take from draws, give to success, then give to losses
+               - strategy 5 = tale from draws and wins and give to draws and wins? 
      
-          TODO: implement multiple strategies, calcualte how successful they were and apply weights with time
+          TODO: see how much of a threat all other teams are
+               This is better than calculating it on an opponent-by-opponent basis for our round-prioritization perspective 
           TODO: instead of randomly selecting a strategy, prioritize rank, prev # of wins, or something else
-          TODO: see how much of a threat another team is, calculate weights
-          TODO: switch strategies X% into the total number of rounds 
-          TODO: implement strategies game-by-game, not round-by-round
+               sub-TODO: implement multiple strategies, calcualte how successful they were and apply weights with time
+               sub-TODO: Maybe count how many games are in won/lost/drawn to determine which points to reallocate?
+                    $ how much they have to reallocate
+                    X how many games they won/loss/drawn (average? or current tally?)
+                         ^^^ this is basically rank lol
+                    $ the average performance of the previous strategies
+                    Scott has been working on this! If strategy 1 has been working more than strategy 2, choose strategy 1
+                    Exponentially weighted moving average -- gives more weight to the recent trials than ancient ones
+                         does the excess data make this stronger or weaker? 
+
+       
           TODO: calculate likeliness of opponent to remove points from draw, hope that they will remove and you won't need to
                ^^ let's use the available points for now maybe?
-          TODO: Strategy 2: make it so it adds to won games instead of taking away from them?
-          TODO: Maybe count how many games are in won/lost/drawn to determine which points to reallocate?
+          TOOD?: EWMA for how people reallocate goals/if it's the same across the board or not? 
+               Doesn't solve the problem with the hashmap tho 
+          
+          TODO: implement strategies game-by-game, not round-by-round
+               Does not bode well for us taking a round approach to maximizing wins or draws, for example 
+               BUT can use for mini-decisions (like whether or not to give points to a drawn game)
+          TOOD: take goals from winning games when the margin is small?
+               tends to make results worse, maybe not ^
+          TODO: check to see if opponent is in the top ranks
+               not necessary, we are taking the approach round-by-round not game-by-game
+          TODO: switch strategies X% into the total number of rounds?
+               Naive approach, our current implementation with weighted average is stronger
+          TODO: map previous teams responses based on margins 
      */
      
      private void strategy1(List<Game> wonGames, List<Game> drawnGames, List<Game> lostGames, Integer round) {
@@ -302,30 +341,3 @@ public class Player extends sim.Player {
      }
 
 }
-
-//methods:
-//1. calculate what opponent is doing -> hashmap stuff
-//2. aim for 18 points
-//3. minimize dead weight games
-
-
-//class 2:
-//sort
-//average points each other team takes away
-//hashset int -> list<int> (margin -> list of how many the opponents changed)
-
-// sort by max margin for wins, all draws, then smallest margin for losses
-// within each game, find the smallest point games which we won -- take away those games (sacrificial loss)
-// we can further the sorting algorithm by adding feasibility of winning to each category ^ 
-     // take top 6 in this sort
-     // then starting from 6 and working up to 1, allocate goals
-
-
-//need to calculate expected value of opponent for each game
-
-//want to add 1 above expected value to as many games as we can
-
-//sort by score - expected value for wins highest to lowest available for allocation
-
-//while we have available goals to allocate
-//sort by expected value - current for draws/losses lowest to highest
