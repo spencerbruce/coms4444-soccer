@@ -13,7 +13,7 @@ import sim.SimPrinter;
 public class Player extends sim.Player {
      // for use of calculating how many points the opponents have to reallocate each round 
      // Round # --> TeamID --> Available Points
-     Map<Integer, Map<Integer, Integer>> availableForReallocation = new HashMap<>();
+     Map<Integer, Integer> availableForReallocation = new HashMap<>();
 
      // Round # --> TeamID --> List< # wins, # draws, # losses> 
      // Map<Integer, Map<Integer, List<Integer>>> allTeamWinsDrawsLosses = new HashMap<>();
@@ -48,6 +48,7 @@ public class Player extends sim.Player {
       */
      public Player(Integer teamID, Integer rounds, Integer seed, SimPrinter simPrinter) {
           super(teamID, rounds, seed, simPrinter);
+          this.simPrinter = new SimPrinter(true);
      }
 
      /**
@@ -113,7 +114,7 @@ public class Player extends sim.Player {
                this.simPrinter.println("\nRound is " + round);
                this.simPrinter.println("Last round strategy was " + lastStrat);
                this.simPrinter.println("Last round scored " + lastRoundScore);
-               this.simPrinter.println("Avg2 is " + avg3);
+               this.simPrinter.println("Avg3 is " + avg3);
           }
 
           List<Game> reallocatedPlayerGames = new ArrayList<>();
@@ -126,7 +127,7 @@ public class Player extends sim.Player {
           // Stores round available points in a map : Round # --> TeamID --> Available Points
           this.addTeamsReallocatablePts(this.teamID, round, wonGames, drawnGames);
           this.addOpponentsReallocatablePts(opponentGamesMap, round);
-          availableForReallocation.forEach((key,value) -> this.simPrinter.println("Round " + key + " => " + value));
+          //availableForReallocation.forEach((key,value) -> this.simPrinter.println("Round " + key + " => " + value));
           this.simPrinter.println();
           // this.getStatsGames(wonGames, drawnGames, lostGames);
 
@@ -169,6 +170,7 @@ public class Player extends sim.Player {
                     currStrat = 3;
                }
           }
+          //currStrat = 3;
      
           if(currStrat == 1) {
                this.simPrinter.println("strategy here is 1");
@@ -189,7 +191,7 @@ public class Player extends sim.Player {
                freq3++;
                lastStrat = 3;
                //this.simPrinter.println("Random variable: " + rand + " --> strategy 2\n");
-               strategy3(wonGames, drawnGames, lostGames, round);
+               strategy4(wonGames, drawnGames, lostGames, round);
           }
 
           reallocatedPlayerGames.addAll(wonGames);
@@ -322,7 +324,7 @@ public class Player extends sim.Player {
           
           // give up on draws only if we have more available points than the opponent
           for (Game drawnGame : drawnGames) {
-               if (this.availableForReallocation.get(round).get(this.teamID) > this.availableForReallocation.get(round).get(drawnGame.getID())) {
+               if (this.availableForReallocation.get(this.teamID) > this.availableForReallocation.get(drawnGame.getID())) {
                     int playerGoals = drawnGame.getNumPlayerGoals();
                     int half = drawnGame.getHalfNumPlayerGoals();
                     this.simPrinter.println("Subtracted goals from draws: " + half);
@@ -378,7 +380,7 @@ public class Player extends sim.Player {
           int excessGoals = 0;
           // give up on draws only if we have more available points than the opponent
           for (Game drawnGame : drawnGames) {
-               if (this.availableForReallocation.get(round).get(this.teamID) > this.availableForReallocation.get(round).get(drawnGame.getID())) {
+               if (this.availableForReallocation.get(this.teamID) > this.availableForReallocation.get(drawnGame.getID())) {
                     int playerGoals = drawnGame.getNumPlayerGoals();
                     int half = drawnGame.getHalfNumPlayerGoals();
                     this.simPrinter.println("Subtracted goals from draws: " + half);
@@ -420,6 +422,218 @@ public class Player extends sim.Player {
           }
           this.simPrinter.println();
      }
+
+     /////Try to get as many games to 6 as we can
+     private void strategy4(List<Game> wonGames, List<Game> drawnGames, List<Game> lostGames, Integer round) {
+          // we will reallocate goals from wins to draws in order to maximize the number of wins 
+          HashMap<Game,Integer> wonGamesLessThanSix = new HashMap<>();
+          int excessGoals = 0;
+          for (Game winningGame : wonGames) {
+               if (drawnGames.size() == 0 && lostGames.size() == 0) 
+                    break;
+
+               //take away points from won game
+               int playerGoals = winningGame.getNumPlayerGoals();
+               int margin;
+               int flag = 0;
+               //if over 6, make the score 6
+               if(playerGoals >= 6) {
+                    margin = playerGoals - 6;
+               }
+               //otherwise take all the points away we can up to half the won game
+               else {
+                    margin = winningGame.getHalfNumPlayerGoals();
+                    flag = 1;
+               }
+
+               int subtractedGoals = margin;
+               subtractedGoals = Math.max(subtractedGoals,0);
+               this.simPrinter.println("Subtracted goals from wins: " + subtractedGoals);
+               excessGoals += subtractedGoals;
+               winningGame.setNumPlayerGoals(playerGoals - subtractedGoals);
+
+               if(flag == 1) {
+                    wonGamesLessThanSix.put(winningGame, subtractedGoals);
+               }
+          }
+
+          for (Game drawnGame : drawnGames) {
+               int playerGoals = drawnGame.getNumPlayerGoals();
+
+               //take away from draws over 6 points
+               if(playerGoals > 6) {
+                    int subtractedGoals = playerGoals - 6;
+                    subtractedGoals = Math.max(subtractedGoals,0);
+                    this.simPrinter.println("Subtracted goals from wins: " + subtractedGoals);
+                    excessGoals += subtractedGoals;
+                    drawnGame.setNumPlayerGoals(playerGoals - subtractedGoals);
+               }
+          }
+
+          List<Game> drawnAndLosses = new ArrayList<>();
+          drawnAndLosses.addAll(drawnGames);
+          drawnAndLosses.addAll(lostGames);
+
+          drawnAndLosses.sort(
+               (Game g1, Game g2) -> (g2.getNumPlayerGoals() - (g1.getNumPlayerGoals()))
+          );
+
+          for(Game game : drawnAndLosses) {
+               System.out.println("score is " + game.getScoreAsString());
+          }
+          
+          while (excessGoals > 0) {
+               // now that we have the hopeful max # of points from the wins, we reallocate to draws 
+               for (Game game : drawnAndLosses) {
+                    int playerGoals = game.getNumPlayerGoals();
+
+                    if(excessGoals > 0 && playerGoals < 6) {
+                         int addedGoals = 6 - playerGoals;
+                         if(addedGoals > excessGoals) {
+                              addedGoals = excessGoals;
+                         }
+
+                         excessGoals -= addedGoals;
+                         this.simPrinter.println("Added goals to game: " + addedGoals);
+                         game.setNumPlayerGoals(playerGoals + addedGoals);
+
+
+
+                    }
+               }
+               // add back to wins if there are any left 
+               if(excessGoals > 0)
+                    for (Game wonGame : wonGamesLessThanSix.keySet()) {
+                         if(excessGoals == 0) {
+                              break;
+                         }
+                         int playerGoals = wonGame.getNumPlayerGoals();
+                         int margin = wonGamesLessThanSix.get(wonGame);
+
+                         if(margin > excessGoals) {
+                              margin = excessGoals;
+                         }
+
+                         //replacing that game with new score
+                         wonGames.remove(wonGame);
+                         wonGame.setNumPlayerGoals(playerGoals + margin);
+                         wonGames.add(wonGame);
+                         excessGoals -= margin;
+                         this.simPrinter.println("Added goals back to won game: " + margin);
+
+
+                    }     
+          }
+          this.simPrinter.println();
+     }
+     
+     /////Try to get as many games to 6 as we can
+     private void strategy5(List<Game> wonGames, List<Game> drawnGames, List<Game> lostGames, Integer round) {
+          // we will reallocate goals from wins to draws in order to maximize the number of wins 
+          HashMap<Game,Integer> wonGamesTakenAway = new HashMap<>();
+          int excessGoals = 0;
+          for (Game winningGame : wonGames) {
+               if (drawnGames.size() == 0 && lostGames.size() == 0) 
+                    break;
+
+               //take away points from won game
+               int playerGoals = winningGame.getNumPlayerGoals();
+               int margin;
+               int flag = 0;
+               //if over 6, make the score 6
+               if(playerGoals >= 6) {
+                    margin = playerGoals - 6;
+               }
+               //otherwise take all the points away we can up to half the won game
+               else {
+                    margin = winningGame.getHalfNumPlayerGoals();
+                    flag = 1;
+               }
+
+               int subtractedGoals = margin;
+               subtractedGoals = Math.max(subtractedGoals,0);
+               this.simPrinter.println("Subtracted goals from wins: " + subtractedGoals);
+               excessGoals += subtractedGoals;
+               winningGame.setNumPlayerGoals(playerGoals - subtractedGoals);
+
+               if(flag == 1) {
+                    wonGamesTakenAway.put(winningGame, subtractedGoals);
+               }
+          }
+
+          for (Game drawnGame : drawnGames) {
+               int playerGoals = drawnGame.getNumPlayerGoals();
+
+               //take away from draws over 6 points
+               if(playerGoals > 6) {
+                    int subtractedGoals = playerGoals - 6;
+                    subtractedGoals = Math.max(subtractedGoals,0);
+                    this.simPrinter.println("Subtracted goals from wins: " + subtractedGoals);
+                    excessGoals += subtractedGoals;
+                    drawnGame.setNumPlayerGoals(playerGoals - subtractedGoals);
+               }
+          }
+
+          List<Game> drawnAndLosses = new ArrayList<>();
+          drawnAndLosses.addAll(drawnGames);
+          drawnAndLosses.addAll(lostGames);
+
+          drawnAndLosses.sort(
+               (Game g1, Game g2) -> (g2.getNumPlayerGoals() - (g1.getNumPlayerGoals()))
+          );
+
+          for(Game game : drawnAndLosses) {
+               System.out.println("score is " + game.getScoreAsString());
+          }
+          
+          while (excessGoals > 0) {
+               // now that we have the hopeful max # of points from the wins, we reallocate to draws 
+               for (Game game : drawnAndLosses) {
+                    int playerGoals = game.getNumPlayerGoals();
+
+                    if(excessGoals > 0 && playerGoals < 6) {
+                         int addedGoals = 6 - playerGoals;
+                         if(addedGoals > excessGoals) {
+                              addedGoals = excessGoals;
+                         }
+
+                         excessGoals -= addedGoals;
+                         this.simPrinter.println("Added goals to game: " + addedGoals);
+                         game.setNumPlayerGoals(playerGoals + addedGoals);
+
+
+
+                    }
+               }
+               // add back to wins if there are any left 
+               if(excessGoals > 0)
+                    for (Game wonGame : wonGamesTakenAway.keySet()) {
+                         if(excessGoals == 0) {
+                              break;
+                         }
+                         int playerGoals = wonGame.getNumPlayerGoals();
+                         int margin = wonGamesTakenAway.get(wonGame);
+
+                         if(margin > excessGoals) {
+                              margin = excessGoals;
+                         }
+
+                         //replacing that game with new score
+                         wonGames.remove(wonGame);
+                         wonGame.setNumPlayerGoals(playerGoals + margin);
+                         wonGames.add(wonGame);
+                         excessGoals -= margin;
+                         this.simPrinter.println("Added goals back to won game: " + margin);
+
+
+                    }     
+          }
+          this.simPrinter.println();
+     }
+
+     
+
+     
 
 
      private int[] calcStats(float av1, float av2, float av3, int f1, int f2, int f3) {
@@ -530,10 +744,10 @@ public class Player extends sim.Player {
           for (Game g : drawnGames) {
                availablePoints += g.getHalfNumPlayerGoals();
           }
-          if (availableForReallocation.get(round) == null) {
+          /*if (availableForReallocation.get(round) == null) {
                availableForReallocation.put(round, new HashMap<Integer, Integer>());
-          }
-          availableForReallocation.get(round).put(teamID, availablePoints);
+          }*/
+          availableForReallocation.put(teamID, availablePoints);
           // this.allTeamWinsDrawsLosses
      }
 
