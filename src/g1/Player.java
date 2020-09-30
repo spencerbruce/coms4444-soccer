@@ -170,7 +170,6 @@ public class Player extends sim.Player {
                     currStrat = 3;
                }
           }
-          //currStrat = 3;
      
           if(currStrat == 1) {
                this.simPrinter.println("strategy here is 1");
@@ -191,7 +190,7 @@ public class Player extends sim.Player {
                freq3++;
                lastStrat = 3;
                //this.simPrinter.println("Random variable: " + rand + " --> strategy 2\n");
-               strategy4(wonGames, drawnGames, lostGames, round);
+               strategy5(wonGames, drawnGames, lostGames, round);
           }
 
           reallocatedPlayerGames.addAll(wonGames);
@@ -527,41 +526,73 @@ public class Player extends sim.Player {
           this.simPrinter.println();
      }
      
-     /////Try to get as many games to 6 as we can
+     /////Keep wins where opponent doesn't have much to allocate
+     /////Give up on wins where opponent has a lot to allocate
+     /////allocate to losses where opponent has a lot to allocate
+     /////allocate just above half to where opponents don't have a lot to allocate
      private void strategy5(List<Game> wonGames, List<Game> drawnGames, List<Game> lostGames, Integer round) {
-          // we will reallocate goals from wins to draws in order to maximize the number of wins 
           HashMap<Game,Integer> wonGamesTakenAway = new HashMap<>();
           int excessGoals = 0;
+
+          List<Game> order = new ArrayList<>();
+          order.addAll(wonGames);
+          order.addAll(drawnGames);
+          order.addAll(lostGames);
+
+          order.sort(
+               (Game g1, Game g2) -> (availableForReallocation.get(g1.getID()) - availableForReallocation.get((g2.getID())))
+          );
+          
+          System.out.println("lowest to highest:");
+          for(Game game : order) {
+               System.out.println("team " + game.getID() + " can allocate " + availableForReallocation.get(game.getID()));
+          }
+
+
+
+          HashMap<Integer,Integer> idToAllocatableOrder = new HashMap<>();
+
+          for(int i = 0; i < order.size(); i++) {
+               idToAllocatableOrder.put(order.get(i).getID(), i);
+          }
+
+
           for (Game winningGame : wonGames) {
+
                if (drawnGames.size() == 0 && lostGames.size() == 0) 
                     break;
 
                //take away points from won game
                int playerGoals = winningGame.getNumPlayerGoals();
+
                int margin;
-               int flag = 0;
-               //if over 6, make the score 6
-               if(playerGoals >= 6) {
-                    margin = playerGoals - 6;
-               }
-               //otherwise take all the points away we can up to half the won game
-               else {
+               
+               //if they have a lot of goals to allocate, give up on game
+               if(idToAllocatableOrder.get(winningGame.getID()) > order.size()/2) {
+                    //System.out.println("here1");
                     margin = winningGame.getHalfNumPlayerGoals();
-                    flag = 1;
+               }
+               //if they don't have a lot of goals to allocate, leave some goals
+               else {
+                    //System.out.println("here2");
+                    int winningBy = winningGame.getNumPlayerGoals() - winningGame.getNumOpponentGoals();
+                    margin = Math.min(winningBy - 2, winningGame.getHalfNumPlayerGoals());
                }
 
                int subtractedGoals = margin;
                subtractedGoals = Math.max(subtractedGoals,0);
+               System.out.println("team rank is " + idToAllocatableOrder.get(winningGame.getID()));
+               System.out.println("score is " + winningGame.getScoreAsString());
                this.simPrinter.println("Subtracted goals from wins: " + subtractedGoals);
                excessGoals += subtractedGoals;
                winningGame.setNumPlayerGoals(playerGoals - subtractedGoals);
-
-               if(flag == 1) {
+               
+               if(subtractedGoals > 0) {
                     wonGamesTakenAway.put(winningGame, subtractedGoals);
                }
           }
 
-          for (Game drawnGame : drawnGames) {
+          /*for (Game drawnGame : drawnGames) {
                int playerGoals = drawnGame.getNumPlayerGoals();
 
                //take away from draws over 6 points
@@ -572,27 +603,63 @@ public class Player extends sim.Player {
                     excessGoals += subtractedGoals;
                     drawnGame.setNumPlayerGoals(playerGoals - subtractedGoals);
                }
-          }
+          }*/
 
           List<Game> drawnAndLosses = new ArrayList<>();
-          drawnAndLosses.addAll(drawnGames);
           drawnAndLosses.addAll(lostGames);
 
-          drawnAndLosses.sort(
+          // give up on draws only if we have more available points than the opponent
+          for (Game drawnGame : drawnGames) {
+               if (this.availableForReallocation.get(this.teamID) > this.availableForReallocation.get(drawnGame.getID())) {
+                    int playerGoals = drawnGame.getNumPlayerGoals();
+                    int half = drawnGame.getHalfNumPlayerGoals();
+                    this.simPrinter.println("Subtracted goals from draws: " + half);
+                    excessGoals+= half;
+                    drawnGame.setNumPlayerGoals(playerGoals-half);
+                    wonGamesTakenAway.put(drawnGame, half);
+               }
+               else {
+                    drawnAndLosses.add(drawnGame);
+               }
+          }
+
+         /* drawnAndLosses.sort(
                (Game g1, Game g2) -> (g2.getNumPlayerGoals() - (g1.getNumPlayerGoals()))
           );
 
           for(Game game : drawnAndLosses) {
                System.out.println("score is " + game.getScoreAsString());
-          }
+          }*/
+
+
+          ////maybe sort?
           
           while (excessGoals > 0) {
                // now that we have the hopeful max # of points from the wins, we reallocate to draws 
                for (Game game : drawnAndLosses) {
                     int playerGoals = game.getNumPlayerGoals();
 
-                    if(excessGoals > 0 && playerGoals < 6) {
-                         int addedGoals = 6 - playerGoals;
+                    //if they don't have much to allocate, we assume they'll take off points heavily.
+                    //go to 2 more than assuming they take off half
+                    if(excessGoals > 0) {
+                         int losingBy = game.getNumOpponentGoals()- game.getNumPlayerGoals();
+
+                         int halfOpponent = game.getNumOpponentGoals()/2;
+
+                         //if they have a lot of goals to allocate, be aggressive
+                         int addedGoals;
+                         if(idToAllocatableOrder.get(game.getID()) > order.size()/2) {
+                              addedGoals = losingBy + 1;
+                         }
+                         //otherwise, be conservative, assume the opponent will take away a lot of goals from their won game
+                         else {
+                              addedGoals = losingBy - halfOpponent + 2;
+                              addedGoals = Math.min(losingBy+1, addedGoals);
+                         }
+                         addedGoals = Math.max(0, addedGoals);
+                         if(addedGoals + game.getNumPlayerGoals() > 8) {
+                              addedGoals = 8-game.getNumPlayerGoals();
+                         }
                          if(addedGoals > excessGoals) {
                               addedGoals = excessGoals;
                          }
@@ -600,9 +667,6 @@ public class Player extends sim.Player {
                          excessGoals -= addedGoals;
                          this.simPrinter.println("Added goals to game: " + addedGoals);
                          game.setNumPlayerGoals(playerGoals + addedGoals);
-
-
-
                     }
                }
                // add back to wins if there are any left 
@@ -628,6 +692,7 @@ public class Player extends sim.Player {
 
                     }     
           }
+          wonGamesTakenAway = new HashMap<>();
           this.simPrinter.println();
      }
 
