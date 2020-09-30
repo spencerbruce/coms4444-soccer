@@ -128,8 +128,9 @@ public class Player extends sim.Player {
           this.addTeamsReallocatablePts(this.teamID, round, wonGames, drawnGames);
           this.addOpponentsReallocatablePts(opponentGamesMap, round);
           availableForReallocation.forEach((key,value) -> this.simPrinter.println("Round " + key + " => " + value));
+          PointsBank pb = new PointsBank(wonGames, drawnGames);
           this.simPrinter.println();
-          // this.getStatsGames(wonGames, drawnGames, lostGames);
+
 
           int currStrat = 1;
 
@@ -191,6 +192,7 @@ public class Player extends sim.Player {
                lastStrat = 3;
                //this.simPrinter.println("Random variable: " + rand + " --> strategy 2\n");
                strategy3(wonGames, drawnGames, lostGames, round);
+               strategy2composite(wonGames, drawnGames, lostGames, round, gameHistory);
           }
 
           reallocatedPlayerGames.addAll(wonGames);
@@ -222,11 +224,14 @@ public class Player extends sim.Player {
                - strategy 2.5 = strategy 2 but with the contingency of rank ???
                - strategy X = Maxing out draw each round, or max out success each round 
 
+
                sort draws in another direction? 
      
           TODO: see how much of a threat all other teams are
                This is better than calculating it on an opponent-by-opponent basis for our round-prioritization perspective 
-          TODO: instead of randomly selecting a strategy, prioritize rank, prev # of wins, or something else
+
+          TODO: instead of randomly selecting a strategy,
+          ??? no need --> prioritize rank, prev # of wins, or something else
                sub-TODO: implement multiple strategies, calcualte how successful they were and apply weights with time
                sub-TODO: Maybe count how many games are in won/lost/drawn to determine which points to reallocate?
                     $ how much they have to reallocate
@@ -370,6 +375,104 @@ public class Player extends sim.Player {
                }
                // this.simPrinter.println("excess is "+ excessGoals);
                // this.simPrinter.println("here4");     
+          }
+          // this.simPrinter.println("here5\n");
+     }
+
+     private void strategy2composite(List<Game> wonGames, List<Game> drawnGames, List<Game> lostGames, Integer round, GameHistory GH) {
+          // this.simPrinter.println("Top of Strategy 2");
+          // as per g5's previous approach, we will reallocate goals from wins to draws in order to maximize the number of wins 
+          int excessGoals = 0;
+          // HashMap<Game,Integer> excessSuccess = new HashMap<>();
+          for (Game winningGame : wonGames) {
+               if (drawnGames.size() == 0 && lostGames.size() == 0) 
+                    break;
+               int playerGoals = winningGame.getNumPlayerGoals();
+               int margin = playerGoals - winningGame.getNumOpponentGoals();
+               // only take away points if we are doing worse then the other team
+               if (GH.getAllRoundRankingsMap().get(round).get(this.teamID) > GH.getAllRoundRankingsMap().get(round).get(this.teamID)) {
+                    // randomize whether we are leaving a margin of 1 or 2 on the win
+                    int subtractedGoals = Math.min(this.random.nextInt(2) + margin - 2, winningGame.getHalfNumPlayerGoals());
+                    subtractedGoals = Math.max(subtractedGoals,0);
+                    this.simPrinter.println("Subtracted goals from wins: " + subtractedGoals);
+                    // excessSuccess.put(winningGame, subtracteGoals);
+                    excessGoals += subtractedGoals;
+                    winningGame.setNumPlayerGoals(playerGoals - subtractedGoals);
+               }
+          }
+          // this.simPrinter.println("here2");
+          
+          // give up on draws only if we have less available points than the opponent
+          for (Game drawnGame : drawnGames) {
+               if (this.availableForReallocation.get(round).get(this.teamID) < this.availableForReallocation.get(round).get(drawnGame.getID())) {
+                    int playerGoals = drawnGame.getNumPlayerGoals();
+                    int half = drawnGame.getHalfNumPlayerGoals();
+                    this.simPrinter.println("Subtracted goals from draws: " + half);
+                    excessGoals+= half;
+                    drawnGame.setNumPlayerGoals(playerGoals-half);
+               }
+          }
+
+          // add all goals to losses
+          while (excessGoals > 0) {
+               // reallocate to losses if there are any left 
+               for (Game lostGame : lostGames) {
+                    int playerGoals = lostGame.getNumPlayerGoals();
+                    // int addedGoals = 1;
+                    int addedGoals = Math.min(excessGoals, Math.min(lostGame.getNumOpponentGoals() - playerGoals + 1, 8 - playerGoals));
+
+                    this.simPrinter.println("playerGoals is " + playerGoals);
+                    this.simPrinter.println("addedGoals is " + addedGoals);
+                    
+                    // distribute goals once for many losses, randomizing the amount 
+                    if (excessGoals > 0 && playerGoals < 8 && addedGoals > 0) {
+                         excessGoals -= addedGoals;
+                         this.simPrinter.println("Added goals to loss: " + addedGoals);
+                         lostGame.setNumPlayerGoals(playerGoals + addedGoals);
+                    }
+               }
+
+               // // now that we have the hopeful max # of points from the wins, we reallocate to draws 
+               // for (Game drawnGame : drawnGames) {
+               //      int playerGoals = drawnGame.getNumPlayerGoals();
+               //      int addedGoals = this.random.nextInt(2);
+               //      // distribute goals once for many draws, randomizing the amount 
+               //      // if (this.availableForReallocation.get(round).get(this.teamID) > this.availableForReallocation.get(round).get(drawnGame.getID()) 
+               //      //      && excessGoals > 0 && playerGoals < 8) {
+               //      if (excessGoals > 0 && playerGoals < 8) {
+               //           if ((playerGoals + addedGoals) > 8) addedGoals = 1;
+               //           excessGoals -= addedGoals;
+               //           this.simPrinter.println("Added goals to draw: " + addedGoals);
+               //           drawnGame.setNumPlayerGoals(playerGoals + addedGoals);
+               //      }
+               // }
+               // this.simPrinter.println("excess is "+ excessGoals);
+
+
+               // add back to wins if there are any left 
+               /*
+               if(excessGoals > 0)
+               for (Game wonGame : excessSuccess.keySet()) {
+                    if(excessGoals == 0) {
+                         break;
+                    }
+                    int playerGoals = wonGame.getNumPlayerGoals();
+                    int margin = wonGamesLessThanSix.get(wonGame);
+
+                    if(margin > excessGoals) {
+                         margin = excessGoals;
+                    }
+
+                    //replacing that game with new score
+                    wonGames.remove(wonGame);
+                    wonGame.setNumPlayerGoals(playerGoals + margin);
+                    wonGames.add(wonGame);
+                    excessGoals -= margin;
+                    this.simPrinter.println("Added goals back to won game: " + margin);
+               }   
+               */  
+
+               
           }
           // this.simPrinter.println("here5\n");
      }
@@ -546,17 +649,6 @@ public class Player extends sim.Player {
           );
      }
 
-     private Map<String, Integer> getStatsGames(List<Game> wonGames, List<Game> drawnGames, List<Game> lostGames) {
-          //returns dictionary with the sizes of won/loss/drawn
-          Map<String, Integer> roundStats = new HashMap<String, Integer>();
-          roundStats.put("W", wonGames.size());
-          roundStats.put("D", drawnGames.size());
-          roundStats.put("L", lostGames.size());
-
-          this.simPrinter.println(" Game Statistics " + roundStats);
-          return roundStats;
-     }
-
 }
 
 // should we make a Point.java class that allows you to reallocate back to the original game you took from?
@@ -569,4 +661,5 @@ public class Player extends sim.Player {
 // X - wins + draws -> draws (losses maybe)
 // 4 - draws -> draws + losses
 // 4 - wins + draws -> wins (using points class)
-// X - max out as many draws or losses as possible 
+// X - max out as many draws or losses as possible (to 6 goals) 
+     // highest # ones first
