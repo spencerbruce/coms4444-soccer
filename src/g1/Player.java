@@ -128,25 +128,63 @@ public class Player extends sim.Player {
           TODO: Maybe count how many games are in won/lost/drawn to determine which points to reallocate?
      */
 
-    private void strategy5(List<Game> lostGames) {
+     private void strategy5(List<Game> wonGames, List<Game> lostGames) {
 
-     for(Game lostGame : lostGames) {
-          int playerGoals = lostGame.getNumPlayerGoals();
-          int opponentGoals = lostGame.getNumOpponentGoals();
-          int margin = opponentGoals - playerGoals;
-          int variable = this.random.nextInt(3);
-          int ptstoAdd = 0;
-          if(margin > 1){
-               ptstoAdd = opponentGoals-variable-playerGoals; 
-          } else {
-               ptstoAdd = 1; //Makes the score draw or leaves it one point behind. can't take points from losses.
+          HashMap<Game,Integer> wonGamesLessThanSix = new HashMap<>();
+          int excessGoals = 0;
+          for (Game winningGame : wonGames) {
+               if (drawnGames.size() == 0 && lostGames.size() == 0) 
+                    break;
+               int playerGoals = winningGame.getNumPlayerGoals();
+               int margin = playerGoals - winningGame.getNumOpponentGoals();
+               // randomize whether we are leaving a margin of 1 or 2 on the win
+               int subtractedGoals = Math.min(this.random.nextInt(2) + margin - 2, winningGame.getHalfNumPlayerGoals());
+               subtractedGoals = Math.max(subtractedGoals,0);
+               this.simPrinter.println("Subtracted goals from wins: " + subtractedGoals);
+               excessGoals += subtractedGoals;
+               winningGame.setNumPlayerGoals(playerGoals - subtractedGoals);
           }
-          //Request Points from Spencer Points Map, returns the remaining pnts left 
-          int allocatedpnts = funcMethod( lostGame, ptstoAdd );
-          lostGame.setNumPlayerGoals(playerGoals + allocatedpnts);
-          this.simPrinter.println("Added goals to loss: " + ptstoAdd);
+
+          
+          for(Game lostGame : lostGames) {
+               int playerGoals = lostGame.getNumPlayerGoals();
+               int opponentGoals = lostGame.getNumOpponentGoals();
+               int margin = opponentGoals - playerGoals;
+               int variable = this.random.nextInt(3);
+               int addedGoals = 0;
+               if(margin > 1){
+                    addedGoals = opponentGoals-variable-playerGoals; 
+               } else {
+                    addedGoals = 1; //Makes the score draw or leaves it one point behind. can't take points from losses.
+               }
+               excessGoals -= addedGoals;
+               lostGame.setNumPlayerGoals(playerGoals + addedGoals);
+               this.simPrinter.println("Added goals to loss: " + addedGoals);
+          }
+          
+
+          // add back to wins if there are any left 
+          if(excessGoals > 0)
+          for (Game wonGame : wonGamesLessThanSix.keySet()) {
+               if(excessGoals == 0) {
+                    break;
+               }
+               int playerGoals = wonGame.getNumPlayerGoals();
+               int margin = wonGamesLessThanSix.get(wonGame);
+
+               if(margin > excessGoals) {
+                    margin = excessGoals;
+               }
+
+               //replacing that game with new score
+               wonGames.remove(wonGame);
+               wonGame.setNumPlayerGoals(playerGoals + margin);
+               wonGames.add(wonGame);
+               excessGoals -= margin;
+               this.simPrinter.println("Added goals back to won game: " + margin);
+               }     
+
      }
-}
 
      private void sortGamesLists(List<Game> wonGames, List<Game> drawnGames, List<Game> lostGames) {
           // wins: biggest margin --> smallest margin
